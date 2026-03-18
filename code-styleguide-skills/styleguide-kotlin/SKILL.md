@@ -1,0 +1,204 @@
+<!--
+UpdatedAt: 2026-03-18 15:36:46
+LatestChange: 实现：基于 Android 官方 Kotlin Style Guide，补充可执行检查清单、冲突裁决与输出模板。
+-->
+
+## 目标
+
+基于 Android 官方 Kotlin Style Guide，为 Kotlin 代码提供**可执行**的风格约束，用于：
+
+- Code Review：快速定位格式与命名偏差。
+- 重构/改动：在不改变业务语义的前提下统一风格。
+- 输出建议：将规则落为“检查点 + 最小示例”，避免背诵式长文。
+
+## 规范来源与优先级
+
+1. 项目/团队约定（若项目有明确格式化或命名规范，以其为准）。
+2. 本 Kotlin skill（本文）。
+3. Android Kotlin Style Guide（官方原文）。
+
+当发生冲突或无法确定时，默认选择：**更可读、更一致、更接近现有代码库风格**的一侧，并说明理由。
+
+## 核心检查清单（可执行）
+
+### 源文件（Source files）
+
+- **编码**：源文件必须是 UTF-8。
+- **空白字符**：除换行外，只允许 ASCII 空格（0x20）。
+  - 不使用 Tab 缩进。
+  - 字符串/字符字面量中的其它空白字符应使用转义。
+- **转义**：对有专用转义序列的字符优先使用专用转义（如 `\n`、`\t`），避免无意义的 `\uXXXX`。
+- **非 ASCII 字符**：允许直接使用可读的 Unicode 字符（如 `∞`），但若不可打印字符必须用 escape 并酌情注释。
+
+### 文件结构（Structure）
+
+文件按以下顺序排列，并且各段之间**恰好 1 个空行**分隔：
+
+1. 版权/许可证头（可选，多行注释）
+2. 文件级注解（`@file:...`）
+3. `package`
+4. `import`
+5. 顶层声明（types/functions/properties/typealias）
+
+其他要点：
+
+- **`package` / `import` 不换行**（不受列宽限制）。
+- **import 单组列表 + ASCII 排序**；**禁止通配符 import**（`import foo.*`）。
+- **文件聚焦单一主题**：不相关顶层声明应拆分到不同文件；公开声明应尽量少且聚合。
+- **类成员顺序**：保持逻辑顺序，可解释；不要“按添加时间顺序”堆在文件末尾。
+
+### 格式化（Formatting）
+
+- **列宽**：代码列宽上限 **100**。
+  - 例外：KDoc 里无法避免的长 URL；`package`/`import`；可复制的 shell 命令行。
+- **缩进**：每进入一层 block/block-like construct，缩进 **+4 空格**；结束后回退。
+- **一行一语句**：每条语句以换行结束；不使用分号。
+
+#### 大括号（Braces）
+
+- `if/else` 作为表达式时：仅当**整段表达式能放在一行**，才允许省略大括号。
+- 其他情况下：`if/for/when` 分支、`do/while` 等，**即便只有一条语句也应使用大括号**。
+- 非空 block 使用 K&R（Egyptian brackets）：
+  - `{` 前不换行；`{` 后换行；`}` 前换行；
+  - `}` 后是否换行取决于它是否结束语句/函数/命名类等（例如 `} else {` 不在 `}` 后换行）。
+- 空 block 仍使用 K&R 风格（不要 `} catch (...) {}` 这种紧凑写法）。
+
+#### 换行与断行（Line wrapping）
+
+断行首要原则：**优先在更高语法层级断行**。同时：
+
+- 在操作符/中缀函数名处断行：**断在操作符之后**。
+- 在 `.` / `?.` 处断行：**断在符号之前**（让点号出现在新行行首）。
+- 在成员引用 `::` 处断行：**断在符号之前**。
+- 方法/构造函数名与后面的 `(` 绑定（不拆开）。
+- `,` 与前一 token 绑定；lambda `->` 与参数列表绑定。
+- 目标是**更清晰**，不是最少行数。
+
+#### 函数（Functions）
+
+- **签名超长**：每个参数单独一行，缩进 +4；`)` 与返回类型单独一行，且不额外缩进。
+- **表达式函数**：仅含单一表达式可写成 `fun f() = expr`。
+
+#### 属性（Properties）
+
+- 初始化表达式超长：在 `=` 之后断行并缩进。
+- 带 `get`/`set`：各自独占一行，缩进 +4，按函数规则格式化。
+- 只读属性可用单行 `val x get() = ...`。
+
+### 空白（Whitespace）
+
+#### 垂直空白（Vertical）
+
+- 类成员之间通常 1 个空行。
+  - 例外：连续属性之间可选空行，用于逻辑分组或与 backing property 关联。
+- 语句之间按需插入空行以形成逻辑分段；多空行不鼓励但允许。
+
+#### 水平空白（Horizontal）
+
+除语言要求外，只在这些位置使用**单个** ASCII 空格（不强制行首/行尾）：
+
+- 关键字（`if/for/catch/...`）与后面的 `(` 之间：`if (`。
+- `} else` / `} catch`：`}` 与关键字之间。
+- `{` 之前：`if (...) {`。
+- 二元运算符两侧：`a + b`。
+  - lambda `->` 两侧：`{ x -> ... }`。
+  - 但 `::`、`.`、`..` 这类符号周围**不加空格**：`Any::toString`、`it.toString()`、`1..4`。
+- `:` 的空格：
+  - 类声明指定父类/接口：`class Foo : Runnable`
+  - `where` 约束：`where T : Comparable<T>`
+  - 其他 `:`（如 `val a: Int`）按 Kotlin 常规格式（`a: Int`，冒号后 1 空格）。
+- `,` 与 `:` 之后：`listOf(1, 2)`、`a: Int`。
+- `//` 行尾注释：`code // comment`（双斜杠两侧至少 1 空格）。
+
+### 枚举（Enum classes）
+
+- 无函数且常量无文档：可选单行：`enum class Answer { YES, NO }`。
+- 常量分多行时：常量之间通常不需要空行；若某常量带 body，则可用空行分隔。
+
+### 注解（Annotations）
+
+- 类型/成员注解通常放在被注解构造的**上一行**。
+- 无参注解可写成同一行多个（如 `@JvmField @Volatile`）。
+- 单个无参注解也可与声明同一行（如 `@Volatile var x = ...`）。
+- `@[...]` 仅用于有 use-site target 的场景，且合并 2 个以上无参注解。
+
+### 命名（Naming）
+
+#### 标识符字符集
+
+- 仅使用 ASCII 字母与数字；少量场景可用下划线（见后文）。
+- 避免 `mName`、`s_name`、`kName` 这类匈牙利前后缀风格（backing property 例外）。
+
+#### 包名（Package）
+
+- 全小写，单词直接拼接，不使用下划线：`com.example.deepspace`。
+
+#### 类型名（Type）
+
+- PascalCase，通常是名词/名词短语。
+- 测试类：`<被测类名>Test` 或 `<被测类名>IntegrationTest`。
+
+#### 函数名（Function）
+
+- camelCase，通常是动词/动词短语。
+- 测试函数名允许下划线分隔语义段：`pop_emptyStack`。
+- `@Composable` 且返回 `Unit`：按“类型名”风格 PascalCase，当作名词命名（如 `NameTag(...)`）。
+- 不使用带空格的反引号函数名（跨平台兼容性问题）。
+
+#### 常量（Constant）
+
+常量使用 **UPPER_SNAKE_CASE**。常量定义条件：
+
+- `val` 且无自定义 `get`；
+- 内容“深度不可变”，可观察状态不可变；函数无可检测副作用；
+- 标量常量必须用 `const` 修饰。
+
+常量只能定义在 `object` 或顶层；类内部满足条件也不要用常量命名（保持一致性）。
+
+#### 非常量（Non-constant）
+
+- 非常量使用 camelCase：实例属性、局部变量、参数等。
+- 集合/数组按语义取名（通常名词/名词短语），不要为了“看起来像常量”而大写。
+
+#### Backing property
+
+- 若需要 backing property：真实属性名一致，前缀加 `_`，如 `_table` / `table`。
+
+#### 泛型类型变量（Type variable）
+
+- 方案 A：单个大写字母，可带 1 位数字（`T`、`E`、`T2`）。
+- 方案 B：类名形式 + `T`（`RequestT`）。
+
+#### 驼峰转换（Camel case）
+
+对缩写/特殊构造（如 XML/IPv6/iOS）遵循“可预测”方案：
+
+- 将短语转为 ASCII，去掉撇号；
+- 按空格/标点切词（必要时把类似 `AdWords` 再拆分）；
+- 全部先小写，再按 camelCase/PascalCase 规则首字母大写拼接。
+
+示例（推荐）：`XmlHttpRequest`、`newCustomerId`、`supportsIpv6OnIos`。
+
+### KDoc（Documentation）
+
+- KDoc 基本格式：
+  - 多行：每行 `*` 对齐；段落之间 1 个空行（只有 `*` 的那行）。
+  - 单行：仅当整段含标记也能单行且没有 block tags（如 `@return`）时才用。
+- block tags 顺序：`@constructor`、`@receiver`、`@param`、`@property`、`@return`、`@throws`、`@see`；不得空描述；换行续行缩进 4。
+- Summary fragment：KDoc 开头必须有简短摘要片段。
+- 覆写（override）：不强制重复 KDoc（除非需要补充额外语义）。
+
+## 本 skill 的回答方式（输出模板）
+
+当用户给出 Kotlin 代码/文件路径/问题描述时，按以下结构输出：
+
+1. **适用范围判定**：Kotlin + 涉及的构造（如 `if/when`、imports、KDoc、命名等）。
+2. **结论（3–10 条检查点）**：逐条对应本规范中的条目。
+3. **最小示例**：只给必要的 before/after 或正确/错误对照。
+4. **不改变语义声明**：强调仅做风格层面的改动（除非用户明确要求重构语义）。
+
+## 参考
+
+- Android Kotlin Style Guide（官方）：https://developer.android.com/kotlin/style-guide
+- Google Style Guides（索引）：https://google.github.io/styleguide/
+
