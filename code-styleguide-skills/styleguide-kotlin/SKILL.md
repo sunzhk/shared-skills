@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-18 15:36:46
-LatestChange: 实现：基于 Android 官方 Kotlin Style Guide，补充可执行检查清单、冲突裁决与输出模板。
+UpdatedAt: 2026-03-19 16:37:22
+LatestChange: 新增 Kotlin 2.3.0+ 显式支持字段（explicit backing fields）特性说明及使用建议。
 -->
 
 ## 目标
@@ -84,6 +84,10 @@ LatestChange: 实现：基于 Android 官方 Kotlin Style Guide，补充可执�
 - 初始化表达式超长：在 `=` 之后断行并缩进。
 - 带 `get`/`set`：各自独占一行，缩进 +4，按函数规则格式化。
 - 只读属性可用单行 `val x get() = ...`。
+- **显式支持字段（Explicit backing fields，Kotlin 2.3.0+）**：当项目启用 `-Xexplicit-backing-fields` 且需要“内部实现类型与对外暴露类型不一致”的场景时，应**优先使用** `field =` 语法，替代传统的 backing property 双属性模式。
+  - 语法：`val 属性: 对外类型 field = 实现类型实例`（例如 `val city: StateFlow<String> field = MutableStateFlow("")`）。
+  - 好处：消除 `_xxx` / `xxx` 双属性、支持在属性作用域内智能转换、减少样板代码。
+  - 典型场景：`MutableStateFlow` / `StateFlow`、`ArrayList` / `List`、内部可变集合对外只读暴露等。
 
 ### 空白（Whitespace）
 
@@ -162,7 +166,8 @@ LatestChange: 实现：基于 Android 官方 Kotlin Style Guide，补充可执�
 
 #### Backing property
 
-- 若需要 backing property：真实属性名一致，前缀加 `_`，如 `_table` / `table`。
+- 若项目**未**启用显式支持字段，且需要 backing property：真实属性名一致，前缀加 `_`，如 `_table` / `table`。
+- 若项目已启用显式支持字段：优先用 `field =` 显式支持字段语法，不再新增 `_` 前缀的双属性。
 
 #### 泛型类型变量（Type variable）
 
@@ -201,4 +206,5 @@ LatestChange: 实现：基于 Android 官方 Kotlin Style Guide，补充可执�
 
 - Android Kotlin Style Guide（官方）：https://developer.android.com/kotlin/style-guide
 - Google Style Guides（索引）：https://google.github.io/styleguide/
+- Kotlin 2.3.0 What's new（显式支持字段）：https://kotlinlang.org/docs/whatsnew23.html#explicit-backing-fields
 
