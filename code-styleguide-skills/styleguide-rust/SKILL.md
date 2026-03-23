@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-23 16:01:27
-LatestChange: 增强：补充 rustfmt 配置分层、稳定性边界、CI 落地与冲突处置清单。
+UpdatedAt: 2026-03-23 16:32:59
+LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI工程命令清单，更新矩阵关联一致性。
 -->
 
 # Rust Code Style Skill
@@ -138,6 +138,18 @@ let result = users
     .collect::<Vec<_>>();
 ```
 
+
+## 工程化落地（Workflow）
+
+- **本地一致性**：提交前至少执行格式化与静态检查，避免仅在 CI 暴露风格问题。
+- **CI 守门**：将风格检查作为必过项；格式化工具输出与审查结论冲突时，以团队约定优先并在 PR 说明。
+- **渐进整改**：遗留代码按“触达即治理”原则处理，优先修复当前变更范围内的风格/可读性问题。
+
+## 工程化命令（本地/CI）
+
+- 本地：`cargo fmt --all && cargo clippy --all-targets --all-features -D warnings`
+- CI：`cargo fmt --all -- --check && cargo clippy --all-targets --all-features -D warnings`
+
 ## 本 skill 的回答方式（输出模板）
 
 当用户给出 Rust 代码、格式化冲突或风格问题时，按以下结构输出：
@@ -151,3 +163,5 @@ let result = users
 ## 参考
 
 - [Rustfmt 官方文档](https://rust-lang.github.io/rustfmt/)
+- [Clippy 官方文档](https://doc.rust-lang.org/clippy/)
+- [Google Style Guides（索引）](https://google.github.io/styleguide/)

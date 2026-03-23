@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-23 16:13:53
-LatestChange: 升级：按 Effective Dart 重构为 Style/Documentation/Usage/Design 四段，并补充冲突处置与执行清单。
+UpdatedAt: 2026-03-23 16:33:29
+LatestChange: 质量精修：去除重复语义参考链接，统一参考来源到官方主链接。
 -->
 
 # Dart Code Style Skill
@@ -21,7 +21,7 @@ LatestChange: 升级：按 Effective Dart 重构为 Style/Documentation/Usage/De
 
 当冲突或无法确定时，默认选择：更可读、更一致、更接近现有代码库风格的一侧，并说明理由。
 
-## Effective Dart 对齐清单（可执行）
+## 核心检查清单（Effective Dart 对齐，可执行）
 
 ### Style（风格）
 
@@ -131,6 +131,11 @@ Future<void> loadUser() async {
 }
 ```
 
+## 工程化命令（本地/CI）
+
+- 本地：`dart format . && dart analyze`
+- CI：`dart format --output=none --set-exit-if-changed . && dart analyze`
+
 ## 本 skill 的回答方式（输出模板）
 
 当用户给出 Dart 代码、风格问题或审查请求时，按以下结构输出：
@@ -143,4 +148,7 @@ Future<void> loadUser() async {
 
 ## 参考
 
-- [Effective Dart](https://www.dartlang.org/guides/language/effective-dart)
+- [Effective Dart（官方）](https://dart.dev/effective-dart)
+- [dart format（官方工具）](https://dart.dev/tools/dart-format)
+- [Dart lints（官方）](https://dart.dev/tools/linter-rules)
+- [Google Style Guides（索引）](https://google.github.io/styleguide/)

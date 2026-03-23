@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-23 15:19:44
-LatestChange: 实现：基于 Google C++ Style Guide，补充可执行检查清单、冲突裁决与输出模板。
+UpdatedAt: 2026-03-23 16:32:59
+LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI工程命令清单，更新矩阵关联一致性。
 -->
 
 # C++ Code Style Skill
@@ -123,6 +123,24 @@ void ConsumeFoo(std::unique_ptr<Foo> foo);
 
 int ComputeScore(const Input& input);
 ```
+
+
+## 工程化落地（Workflow）
+
+- **本地一致性**：提交前至少执行格式化与静态检查，避免仅在 CI 暴露风格问题。
+- **CI 守门**：将风格检查作为必过项；格式化工具输出与审查结论冲突时，以团队约定优先并在 PR 说明。
+- **渐进整改**：遗留代码按“触达即治理”原则处理，优先修复当前变更范围内的风格/可读性问题。
+
+## 常见冲突与处置
+
+- **规范冲突**：优先级始终为“项目约定 > 本文 > 官方参考”。
+- **工具与人工结论冲突**：优先保证可读性与一致性，并在评审中记录取舍理由。
+- **增量与全量冲突**：优先保证本次修改范围一致，避免在无关区域引入大规模格式噪音。
+
+## 工程化命令（本地/CI）
+
+- 本地：`clang-format -i $(rg --files -g "*.{h,hpp,cc,cpp,cxx}")`
+- CI：`clang-format --dry-run --Werror $(rg --files -g "*.{h,hpp,cc,cpp,cxx}")`
 
 ## 本 skill 的回答方式（输出模板）
 
