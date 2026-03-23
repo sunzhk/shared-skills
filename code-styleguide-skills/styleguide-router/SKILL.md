@@ -1,7 +1,9 @@
 <!--
-UpdatedAt: 2026-03-18 15:27:24
-LatestChange: 初版：创建代码风格总纲 skill，用于按语言分发到各子 skill，并给出冲突裁决与输出模板。
+UpdatedAt: 2026-03-23 15:58:25
+LatestChange: 增加 Rust 路由映射，支持分发到 styleguide-rust。
 -->
+
+# Code Style Router Skill
 
 ## 目标
 
@@ -52,6 +54,7 @@ LatestChange: 初版：创建代码风格总纲 skill，用于按语言分发到
 - Objective-C → `styleguide-objective-c`
 - Python → `styleguide-python`
 - R → `styleguide-r`
+- Rust → `styleguide-rust`
 - Shell → `styleguide-shell`
 - Swift → `styleguide-swift`
 - TypeScript → `styleguide-typescript`
@@ -79,4 +82,3 @@ LatestChange: 初版：创建代码风格总纲 skill，用于按语言分发到
 
 - 位置：`.cursor/skills/<skill-name>/SKILL.md`
 - 命名：`styleguide-<language>`（必要时使用更明确的后缀，例如 `html-css`、`objective-c`）。
-
