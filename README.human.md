@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-24 17:28:01
-LatestChange: 升级为完整 submodule 手册，补充初始化、更新、迁移与常见问题。
+UpdatedAt: 2026-03-26 17:03:28
+LatestChange: 下线 ai-project-lifecycle 的人类侧说明与接入示例，保留可实战技能。
 -->
 
 # shared-skills（给人看的说明）
@@ -25,6 +25,14 @@ LatestChange: 升级为完整 submodule 手册，补充初始化、更新、迁�
 - 用途：代码评审流程与评论策略（基于 Google eng-practices）。
 - 典型场景：PR/CL 评审、评论措辞、冲突处理、Small CL 拆分、评审速度优化。
 - 入口 skill：`eng-practices/SKILL.md`。
+
+### `unit-test-guide-skills/`
+
+- 用途：按项目类型输出单元测试规范（Android / iOS / 微信小程序）。
+- 典型场景：补测试、统一测试分层、确定 mock/fake 策略、形成可执行测试任务清单。
+- 入口 skill：`unit-test-guide-skills/unit-test-router/SKILL.md`（按平台分发到子 skill）。
+- 子 skill：`unit-test-android`、`unit-test-ios`、`unit-test-wechat-miniprogram`。
+- 规则基线：以官方文档为先（Android Developers、Apple Developer、微信开放文档）。
 
 ## 如何在项目中接入
 
@@ -86,6 +94,7 @@ git submodule update --remote --recursive
 - 该路径下的典型结构：
   - `.cursor/skills-shared/code-styleguide-skills/`
   - `.cursor/skills-shared/eng-practices/`
+  - `.cursor/skills-shared/unit-test-guide-skills/`
 
 ## 项目中如何配置
 
@@ -96,16 +105,19 @@ git submodule update --remote --recursive
 
 - `.cursor/skills-shared/code-styleguide-skills/styleguide-router/SKILL.md`
 - `.cursor/skills-shared/eng-practices/SKILL.md`
+- （推荐）`.cursor/skills-shared/unit-test-guide-skills/unit-test-router/SKILL.md`
+- （可选，直达某端）`.cursor/skills-shared/unit-test-guide-skills/unit-test-android/SKILL.md` 等同目录下 `unit-test-ios`、`unit-test-wechat-miniprogram`
 
 使用约定：
 - 风格问题优先走 `styleguide-router`。
 - 评审流程、评论策略、冲突处理优先走 `eng-practices`。
+- 单元测试规范与补测策略优先走 `unit-test-router`；若平台已明确，可直达对应 `unit-test-*` 子 skill。
 ```
 
 ## 日常使用建议
 
-1. 先判断问题类型（风格 / 评审流程）。
-2. 选择对应入口 skill（router 或 eng-practices）。
+1. 先判断问题类型（风格 / 评审流程 / 单元测试规范）。
+2. 选择对应入口（`styleguide-router`、`eng-practices`、`unit-test-router`）。
 3. 输出以可执行建议为主，避免泛化描述。
 4. 与项目强制规范冲突时，以项目规范为准。
 

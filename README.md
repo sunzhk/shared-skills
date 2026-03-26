@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-24 17:28:01
-LatestChange: 调整为总纲 + 链接模式，接入细节统一下沉到 README.human.md。
+UpdatedAt: 2026-03-26 17:01:19
+LatestChange: 移除 ai-project-lifecycle 相关入口与链接，仅保留当前可实战技能导航。
 -->
 
 # shared-skills 总纲
@@ -32,6 +32,7 @@ LatestChange: 调整为总纲 + 链接模式，接入细节统一下沉到 READM
 - AI 运行规则（触发、路由、优先级）：`README.ai.md`
 - 风格技能说明：`code-styleguide-skills/README.md`
 - 评审技能入口：`eng-practices/SKILL.md`
+- 单元测试规范（主控 router）：`unit-test-guide-skills/unit-test-router/SKILL.md`（说明见 `unit-test-guide-skills/README.md`）
 
 ## 当前技能目录
 
@@ -41,6 +42,10 @@ LatestChange: 调整为总纲 + 链接模式，接入细节统一下沉到 READM
 - `eng-practices/`
   - 入口：`eng-practices/SKILL.md`
   - 参考：`eng-practices/reference-code-review.md`
+- `unit-test-guide-skills/`
+  - 入口：`unit-test-router/SKILL.md`；子技能：`unit-test-android`、`unit-test-ios`、`unit-test-wechat-miniprogram`
+  - 包说明：`unit-test-guide-skills/README.md`
+  - 官方基线：Android Developers / Apple Developer / 微信开放文档（各子技能内有链接清单）
 
 ## 路由说明
 

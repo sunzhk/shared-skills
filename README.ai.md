@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-24 17:28:01
-LatestChange: 新增路由示例矩阵，细化常见问法到技能入口的映射。
+UpdatedAt: 2026-03-26 17:03:28
+LatestChange: 下线 ai-project-lifecycle 路由规则，仅保留 styleguide/eng-practices/unit-test 三类实战入口。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -9,7 +9,8 @@ LatestChange: 新增路由示例矩阵，细化常见问法到技能入口的映
 
 ## 1. 目标
 
-- 对用户问题进行稳定路由：风格问题走 styleguide，评审流程问题走 eng-practices。
+- 对用户问题进行稳定路由：风格问题走 styleguide，评审流程问题走 eng-practices；单元测试规范问题 **默认走** `unit-test-guide-skills/unit-test-router/SKILL.md`。
+- **分层原则**：**不要假设一个 skill 解决所有问题**。按“风格 / 评审 / 单元测试”拆分处理，避免在单个技能中混合过多职责。
 - 在不破坏项目约束的前提下输出可执行建议。
 - 减少重复解释与风格漂移。
 
@@ -17,11 +18,14 @@ LatestChange: 新增路由示例矩阵，细化常见问法到技能入口的映
 
 - 风格入口：`code-styleguide-skills/styleguide-router/SKILL.md`
 - 评审入口：`eng-practices/SKILL.md`
+- 单元测试规范（主控）：`unit-test-guide-skills/unit-test-router/SKILL.md`
+- 单元测试三端子技能：`unit-test-guide-skills/unit-test-android/SKILL.md`、`unit-test-ios`、`unit-test-wechat-miniprogram`
 
 需要深读时可读取：
 
 - `eng-practices/reference-code-review.md`
 - `code-styleguide-skills/README.md`
+- `unit-test-guide-skills/README.md`
 
 ## 3. 触发与路由规则
 
@@ -41,14 +45,27 @@ LatestChange: 新增路由示例矩阵，细化常见问法到技能入口的映
 - Reviewer/Author 协作与冲突处理
 - Small CL 拆分、评审速度优化、紧急评审边界
 
-### 3.3 组合调用
+### 3.3 路由到 `unit-test-guide-skills`
+
+**默认**使用 `unit-test-guide-skills/unit-test-router/SKILL.md`，由其分发到平台子技能。
+
+当用户意图是以下任一项：
+
+- “单元测试怎么写/怎么补/怎么规范化”
+- “按 Android / iOS / 微信小程序给测试策略”
+- “测试覆盖怎么补、mock/fake 怎么选”
+- “要一份可执行的测试任务清单/验收清单”
+
+**直达子技能**：用户已明确平台且仅需该端细则时，可直接读对应 `unit-test-*/SKILL.md`。
+
+### 3.4 组合调用
 
 同时涉及风格与评审流程时：
 
 1. 先用 `eng-practices` 判断评审结论与优先级（Required/Nit/Optional）
 2. 再用 `styleguide-router` 给出语言级具体修改建议
 
-### 3.4 路由示例矩阵
+### 3.5 路由示例矩阵
 
 | 用户问法（示例） | 路由 | 执行要点 |
 | --- | --- | --- |
@@ -60,6 +77,9 @@ LatestChange: 新增路由示例矩阵，细化常见问法到技能入口的映
 | “评审太慢怎么办？” | `eng-practices` | 强调响应时延和流程加速策略。 |
 | “这是紧急修复，怎么审？” | `eng-practices` | 先判断 emergency 再套流程。 |
 | “既要评审策略又要语言规范” | `eng-practices` + `styleguide-router` | 先流程结论，后语言落地。 |
+| “给我一份 Android 单元测试规范” | `unit-test-router` → `unit-test-android` | 按官方文档基线给可执行检查点。 |
+| “iOS 单测异步怎么写规范” | `unit-test-router` 或 `unit-test-ios` | 优先 Apple 官方 XCTest/Swift Testing 规则。 |
+| “微信小程序组件单测怎么做” | `unit-test-router` → `unit-test-wechat-miniprogram` | 以微信开放文档和 miniprogram-simulate 为准。 |
 
 ## 4. 冲突优先级
 
