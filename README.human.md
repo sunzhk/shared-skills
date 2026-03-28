@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-26 17:03:28
-LatestChange: 下线 ai-project-lifecycle 的人类侧说明与接入示例，保留可实战技能。
+UpdatedAt: 2026-03-28 11:06:15
+LatestChange: 补充 planning-with-files-ext 用途、AGENTS 声明示例与 submodule 路径约定。
 -->
 
 # shared-skills（给人看的说明）
@@ -33,6 +33,12 @@ LatestChange: 下线 ai-project-lifecycle 的人类侧说明与接入示例，�
 - 入口 skill：`unit-test-guide-skills/unit-test-router/SKILL.md`（按平台分发到子 skill）。
 - 子 skill：`unit-test-android`、`unit-test-ios`、`unit-test-wechat-miniprogram`。
 - 规则基线：以官方文档为先（Android Developers、Apple Developer、微信开放文档）。
+
+### `planning-with-files-ext/`
+
+- 用途：在新仓库里**一键落地**基于文件的 planning-with-files 工作流（Cursor rules、hooks、`doc/plans` 脚本）；与 `planning-with-files-zh` 方法论对齐，侧重工程化落地。
+- 典型场景：初始化规划目录、安装 planning hooks、多计划 `ACTIVE` 指针、避免覆盖已有 `hooks.json`（冲突时中断并 diff）。
+- 入口 skill：`planning-with-files-ext/SKILL.md`；人类操作说明见同目录 `README.md`（`bootstrap.sh`）。
 
 ## 如何在项目中接入
 
@@ -95,6 +101,7 @@ git submodule update --remote --recursive
   - `.cursor/skills-shared/code-styleguide-skills/`
   - `.cursor/skills-shared/eng-practices/`
   - `.cursor/skills-shared/unit-test-guide-skills/`
+  - `.cursor/skills-shared/planning-with-files-ext/`
 
 ## 项目中如何配置
 
@@ -107,17 +114,19 @@ git submodule update --remote --recursive
 - `.cursor/skills-shared/eng-practices/SKILL.md`
 - （推荐）`.cursor/skills-shared/unit-test-guide-skills/unit-test-router/SKILL.md`
 - （可选，直达某端）`.cursor/skills-shared/unit-test-guide-skills/unit-test-android/SKILL.md` 等同目录下 `unit-test-ios`、`unit-test-wechat-miniprogram`
+- （可选）`.cursor/skills-shared/planning-with-files-ext/SKILL.md`（新项目落地文件规划与 hooks）
 
 使用约定：
 - 风格问题优先走 `styleguide-router`。
 - 评审流程、评论策略、冲突处理优先走 `eng-practices`。
 - 单元测试规范与补测策略优先走 `unit-test-router`；若平台已明确，可直达对应 `unit-test-*` 子 skill。
+- 需要在新仓库**安装文件规划与 hooks** 时走 `planning-with-files-ext`（按 `SKILL.md` 执行 `bootstrap.sh`）。
 ```
 
 ## 日常使用建议
 
-1. 先判断问题类型（风格 / 评审流程 / 单元测试规范）。
-2. 选择对应入口（`styleguide-router`、`eng-practices`、`unit-test-router`）。
+1. 先判断问题类型（风格 / 评审流程 / 单元测试规范 / **规划工具落地**）。
+2. 选择对应入口（`styleguide-router`、`eng-practices`、`unit-test-router`、`planning-with-files-ext`）。
 3. 输出以可执行建议为主，避免泛化描述。
 4. 与项目强制规范冲突时，以项目规范为准。
 

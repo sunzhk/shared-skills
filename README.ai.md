@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-26 17:03:28
-LatestChange: 下线 ai-project-lifecycle 路由规则，仅保留 styleguide/eng-practices/unit-test 三类实战入口。
+UpdatedAt: 2026-03-28 11:06:15
+LatestChange: 增加 planning-with-files-ext 入口与触发路由（与风格/评审/单测并列为工具类技能）。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -9,8 +9,8 @@ LatestChange: 下线 ai-project-lifecycle 路由规则，仅保留 styleguide/en
 
 ## 1. 目标
 
-- 对用户问题进行稳定路由：风格问题走 styleguide，评审流程问题走 eng-practices；单元测试规范问题 **默认走** `unit-test-guide-skills/unit-test-router/SKILL.md`。
-- **分层原则**：**不要假设一个 skill 解决所有问题**。按“风格 / 评审 / 单元测试”拆分处理，避免在单个技能中混合过多职责。
+- 对用户问题进行稳定路由：风格问题走 styleguide，评审流程问题走 eng-practices；单元测试规范问题 **默认走** `unit-test-guide-skills/unit-test-router/SKILL.md`；**文件规划工具落地**（bootstrap、hooks、计划目录）走 `planning-with-files-ext/SKILL.md`。
+- **分层原则**：**不要假设一个 skill 解决所有问题**。按“风格 / 评审 / 单元测试 / 规划落地”拆分处理，避免在单个技能中混合过多职责。
 - 在不破坏项目约束的前提下输出可执行建议。
 - 减少重复解释与风格漂移。
 
@@ -20,12 +20,14 @@ LatestChange: 下线 ai-project-lifecycle 路由规则，仅保留 styleguide/en
 - 评审入口：`eng-practices/SKILL.md`
 - 单元测试规范（主控）：`unit-test-guide-skills/unit-test-router/SKILL.md`
 - 单元测试三端子技能：`unit-test-guide-skills/unit-test-android/SKILL.md`、`unit-test-ios`、`unit-test-wechat-miniprogram`
+- 文件规划落地：`planning-with-files-ext/SKILL.md`（执行 `bootstrap.sh`、与 `planning-with-files-zh` 方法论对齐）
 
 需要深读时可读取：
 
 - `eng-practices/reference-code-review.md`
 - `code-styleguide-skills/README.md`
 - `unit-test-guide-skills/README.md`
+- `planning-with-files-ext/README.md`
 
 ## 3. 触发与路由规则
 
@@ -58,14 +60,24 @@ LatestChange: 下线 ai-project-lifecycle 路由规则，仅保留 styleguide/en
 
 **直达子技能**：用户已明确平台且仅需该端细则时，可直接读对应 `unit-test-*/SKILL.md`。
 
-### 3.4 组合调用
+### 3.4 路由到 `planning-with-files-ext`
+
+当用户意图是以下任一项：
+
+- 在新项目/仓库中 **bootstrap 文件规划**、安装 planning **hooks**
+- 初始化 `doc/plans`、**ACTIVE** 多计划、`task_plan` / `findings` / `progress` 工作流
+- 复制/落地本仓库的 **planning-with-files** 模板（含 `hooks.json` 冲突检测）
+
+**执行要点**：读取 `planning-with-files-ext/SKILL.md`，按其中路径对目标项目根目录运行 `bootstrap.sh`；若 `hooks.json` 已存在且与模板不一致，脚本会 **exit 1** 并打印 diff，需人工合并后再试。
+
+### 3.5 组合调用
 
 同时涉及风格与评审流程时：
 
 1. 先用 `eng-practices` 判断评审结论与优先级（Required/Nit/Optional）
 2. 再用 `styleguide-router` 给出语言级具体修改建议
 
-### 3.5 路由示例矩阵
+### 3.6 路由示例矩阵
 
 | 用户问法（示例） | 路由 | 执行要点 |
 | --- | --- | --- |
@@ -80,6 +92,7 @@ LatestChange: 下线 ai-project-lifecycle 路由规则，仅保留 styleguide/en
 | “给我一份 Android 单元测试规范” | `unit-test-router` → `unit-test-android` | 按官方文档基线给可执行检查点。 |
 | “iOS 单测异步怎么写规范” | `unit-test-router` 或 `unit-test-ios` | 优先 Apple 官方 XCTest/Swift Testing 规则。 |
 | “微信小程序组件单测怎么做” | `unit-test-router` → `unit-test-wechat-miniprogram` | 以微信开放文档和 miniprogram-simulate 为准。 |
+| “给新项目装 planning-with-files / hooks” | `planning-with-files-ext` | 读 `SKILL.md` 后 `bootstrap.sh`；注意 `hooks.json` 冲突时中断。 |
 
 ## 4. 冲突优先级
 

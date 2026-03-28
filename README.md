@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-26 17:01:19
-LatestChange: 移除 ai-project-lifecycle 相关入口与链接，仅保留当前可实战技能导航。
+UpdatedAt: 2026-03-28 11:06:15
+LatestChange: 增加 planning-with-files-ext 导航入口（文件规划 + Cursor hooks 一键落地）。
 -->
 
 # shared-skills 总纲
@@ -33,6 +33,7 @@ LatestChange: 移除 ai-project-lifecycle 相关入口与链接，仅保留当�
 - 风格技能说明：`code-styleguide-skills/README.md`
 - 评审技能入口：`eng-practices/SKILL.md`
 - 单元测试规范（主控 router）：`unit-test-guide-skills/unit-test-router/SKILL.md`（说明见 `unit-test-guide-skills/README.md`）
+- 文件规划落地（bootstrap / hooks）：`planning-with-files-ext/SKILL.md`（包内说明见 `planning-with-files-ext/README.md`）
 
 ## 当前技能目录
 
@@ -46,6 +47,9 @@ LatestChange: 移除 ai-project-lifecycle 相关入口与链接，仅保留当�
   - 入口：`unit-test-router/SKILL.md`；子技能：`unit-test-android`、`unit-test-ios`、`unit-test-wechat-miniprogram`
   - 包说明：`unit-test-guide-skills/README.md`
   - 官方基线：Android Developers / Apple Developer / 微信开放文档（各子技能内有链接清单）
+- `planning-with-files-ext/`
+  - 入口：`planning-with-files-ext/SKILL.md`
+  - 包说明：`planning-with-files-ext/README.md`（含 `bootstrap.sh` 一键写入 `.cursor` 与 `doc/plans`）
 
 ## 路由说明
 
