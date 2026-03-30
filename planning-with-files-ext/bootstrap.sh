@@ -12,6 +12,90 @@ PLANS_DIR="${TARGET_ROOT}/doc/plans"
 
 mkdir -p "${RULES_DIR}" "${HOOKS_DIR}" "${PLANS_DIR}"
 
+cat > "${PLANS_DIR}/planning-paths.sh" <<'PLANPATHSEOF'
+#!/bin/bash
+# planning-with-files-ext: 路径 id 校验与 effective_dir（SUB_ACTIVE）解析
+# 由 hooks、new-plan.sh、plan.sh source；勿直接执行。
+
+planning_validate_path_id() {
+  local id="${1:-}"
+  if [[ -z "${id}" ]]; then
+    echo "planning-paths: plan id 为空" >&2
+    return 1
+  fi
+  if [[ "${id}" == /* || "${id}" == */ ]]; then
+    echo "planning-paths: plan id 不得以 / 开头或结尾：${id}" >&2
+    return 1
+  fi
+  if [[ "${id}" == *..* ]]; then
+    echo "planning-paths: plan id 不允许 ..：${id}" >&2
+    return 1
+  fi
+  if [[ "${id}" == *//* ]]; then
+    echo "planning-paths: plan id 不允许连续斜杠：${id}" >&2
+    return 1
+  fi
+  local IFS='/'
+  # shellcheck disable=SC2206
+  local parts=(${id})
+  local n="${#parts[@]}"
+  if [[ "${n}" -gt 2 ]]; then
+    echo "planning-paths: 路径至多两段（父 或 父/子）：${id}" >&2
+    return 1
+  fi
+  local p
+  for p in "${parts[@]}"; do
+    if [[ -z "${p}" ]]; then
+      echo "planning-paths: 含空路径段：${id}" >&2
+      return 1
+    fi
+    if [[ ! "${p}" =~ ^[a-zA-Z0-9._-]+$ ]]; then
+      echo "planning-paths: 非法段「${p}」（仅字母数字._-）：${id}" >&2
+      return 1
+    fi
+  done
+  return 0
+}
+
+# 参数：$1 = doc/plans 的绝对路径；$2 = ACTIVE 文件内容（trim 前可先调用方处理）
+# 输出：相对 doc/plans 的 effective 子路径（如 foo 或 foo/T1），无效时输出空行
+planning_resolve_effective_subpath() {
+  local plans_root="${1:-}"
+  local active_line="${2:-}"
+  active_line="$(printf '%s' "${active_line}" | tr -d '\r\n\t ')"
+  if [[ -z "${active_line}" ]]; then
+    echo ""
+    return 0
+  fi
+  if ! planning_validate_path_id "${active_line}"; then
+    echo ""
+    return 0
+  fi
+  local parent_dir="${plans_root}/${active_line}"
+  if [[ ! -d "${parent_dir}" ]]; then
+    echo ""
+    return 0
+  fi
+
+  if [[ "${active_line}" == */* ]]; then
+    printf '%s\n' "${active_line}"
+    return 0
+  fi
+
+  local sub_file="${parent_dir}/SUB_ACTIVE"
+  if [[ -f "${sub_file}" ]]; then
+    local child
+    child="$(tr -d '\r\n\t ' < "${sub_file}")"
+    if [[ -n "${child}" ]] && [[ "${child}" =~ ^[a-zA-Z0-9._-]+$ ]] && [[ -d "${parent_dir}/${child}" ]]; then
+      printf '%s\n' "${active_line}/${child}"
+      return 0
+    fi
+  fi
+  printf '%s\n' "${active_line}"
+  return 0
+}
+PLANPATHSEOF
+
 HOOKS_JSON_DEST="${CURSOR_DIR}/hooks.json"
 HOOKS_JSON_WANT="$(mktemp)"
 trap 'rm -f "${HOOKS_JSON_WANT}"' EXIT
@@ -65,40 +149,71 @@ cp "${HOOKS_JSON_WANT}" "${HOOKS_JSON_DEST}"
 cat > "${RULES_DIR}/planning-with-files.mdc" <<EOF
 <!--
 UpdatedAt: ${NOW}
-LatestChange: 通过模板脚本初始化 planning-with-files 项目规则（按需交付 execution_brief.md）。
+LatestChange: 增加路径 id、父计划+子计划、SUB_ACTIVE、effective_dir 与总纲索引表约定。
 -->
 
 # Planning workflow (file-based)
 
 当用户提出“做计划/拆解任务/制定实现方案/进入 Plan 模式/这会是一个复杂任务”等请求时，默认使用 **planning-with-files** 的三文件工作流（无需用户点名）：
 
-- **必须先创建**（项目根目录下 \`doc/plans/<plan-id>/\`）：
-  - \`doc/plans/<plan-id>/task_plan.md\`（权威：目标、阶段、完成判定、重大决策、错误表）
-  - \`doc/plans/<plan-id>/findings.md\`（调研与证据：外部资料/检索结果/结论沉淀）
-  - \`doc/plans/<plan-id>/progress.md\`（执行日志：做了什么、改了哪些文件、验证结果）
-  - （按需）\`doc/plans/<plan-id>/execution_brief.md\`（交付文档：给新 agent 或执行人直接开工的“执行视图”）
-- **激活计划**：同时存在多个计划时，用 \`doc/plans/ACTIVE\` 存放当前激活的 \`<plan-id>\`（纯文本一行），hooks 会基于该指针读取对应的三文件。
-- **阶段设计**：\`doc/plans/<plan-id>/task_plan.md\` 里给出 3–7 个 Phase，并明确每个 Phase 的验收标准；Phase 1 标记为 \`in_progress\`，其余为 \`pending\`。
-- **计划交付（按需）**：仅当用户明确要求“输出交接文档/执行文档”时，阶段冻结后生成/更新 \`doc/plans/<plan-id>/execution_brief.md\`，至少包含：目标、范围、任务顺序、DoD、验证门禁、回填要求、风险升级条件。
-- **更新频率**：
-  - 每完成一个 Phase：更新 \`doc/plans/<plan-id>/task_plan.md\` 状态（\`pending → in_progress → complete\`），并在 \`doc/plans/<plan-id>/progress.md\` 记录本阶段动作与验证结果。
-  - 每进行约 2 次浏览/检索/阅读类操作：把结论写入 \`doc/plans/<plan-id>/findings.md\`（避免信息丢失）。
-- **安全边界**：\`doc/plans/<plan-id>/task_plan.md\` 会被 hooks 反复读入上下文。不要把外部网页/API 原文大段粘贴进该文件；外部不可信内容应写入 \`doc/plans/<plan-id>/findings.md\`，在 \`task_plan.md\` 仅保留你已消化后的结论与决策摘要。
+## plan-id 与目录（路径 id）
 
-对用户的输出要求：
+- **plan-id** 为相对 \`doc/plans/\` 的 POSIX 子路径，用 \`/\` 连接，**与磁盘目录一一对应**。每段仅 \`[a-zA-Z0-9._-]+\`，禁止 \`..\`、首尾 \`/\`、空段、连续 \`/\`；相对 \`doc/plans/\` **至多两段**（\`父\` 或 \`父/子\`），不支持更深嵌套。
+- **必须先创建**（\`doc/plans/<plan-id>/\`）：
+  - \`task_plan.md\`（权威：目标、阶段或总纲大纲、完成判定、重大决策、错误表）
+  - \`findings.md\`（调研与证据：外部资料/检索结果/结论沉淀——**体量大的外部原文放这里**）
+  - \`progress.md\`（执行日志）
+  - （按需）\`execution_brief.md\`
+- **激活计划**：\`doc/plans/ACTIVE\` 存当前 **全局** plan-id（一行）。hooks 解析 **effective_dir**（见下）后读写 **effective** 目录下的三文件。
+- **可选「直挂子计划」**：\`ACTIVE\` 也可为两段路径（如 \`feature-a/T1\`），此时 effective_dir 即为该路径；**不**再读父目录的 \`SUB_ACTIVE\`。
 
-- 先给出 \`doc/plans/<plan-id>/task_plan.md\` 的骨架（Goal + Phases + 关键问题 + 验收标准）。
-- 再开始任何实现或大范围搜索/改动。
-- 若本次包含文档交付请求，收尾时明确告知 \`execution_brief.md\` 已可作为实施输入文档（\`findings.md\`/\`progress.md\` 仅作佐证与追溯）。
+## 父计划 + 子计划（总纲与子目录）
+
+- **总纲（父计划）** \`doc/plans/<父>/\`：\`task_plan.md\` 仅保留 **大纲 + 子计划索引表 + 各子完成判据（一句话）**，不要把子计划的详细 Phase 写进总纲（避免 hook 注入过载）。
+- **子计划** \`doc/plans/<父>/<子>/\`：各自一套三文件；**详细 Phase、执行细节**在子计划 \`task_plan.md\`。
+- **子计划索引表**（唯一位置）：父级 \`task_plan.md\` 内固定标题 \`## 子计划索引表\`。表中数据行 **自上而下** 为 \`SUB_ACTIVE\` 推进顺序。
+- **最小表头**（列）：\`序号 | 子目录 | 简述 | 完成判据（一句话） | 状态\`；\`子目录\` 仅一段名，与磁盘 \`<父>/<子目录>/\` 一致。
+- **状态列**：\`pending\` / \`in_progress\` / \`complete\`；**全表同一时间仅允许一行 \`in_progress\`**，且必须与当前 \`SUB_ACTIVE\` 指向的子目录一致。推进时：先将当前行改为 \`complete\`，再将下一行改为 \`in_progress\`。创建子计划后：**仅第一行** \`in_progress\`，其余 \`pending\`。
+- **SUB_ACTIVE**（父目录下文件 \`doc/plans/<父>/SUB_ACTIVE\`）：纯文本一行，为**子目录名**（一段，无 \`/\`）。由 **Agent** 维护（非 \`plan.sh\` 自动写）：子目录就绪后指向索引表首行；子计划按表顺序完成后推进 \`SUB_ACTIVE\` 与索引表状态；**全部子计划完成后删除或清空 \`SUB_ACTIVE\`**，effective_dir 回到父目录三文件。用户用 \`[计划: <父>]\` 或 \`plan.sh use <父>\` 切回父计划时 **不得清除** \`<父>/SUB_ACTIVE\`，保留上次子指针。
+- **effective_dir**：若 \`ACTIVE\` 为单段 \`<父>\` 且存在有效 \`<父>/SUB_ACTIVE\` 指向已存在的子目录，则 effective 为 \`<父>/<子>\`；否则 effective 与 \`ACTIVE\` 对应目录一致（单段或两段直挂）。
+
+## 单计划（无双总纲）
+
+- **阶段设计**：\`task_plan.md\` 里 3–7 个 Phase，验收标准明确；Phase 1 标记 \`in_progress\`，其余 \`pending\`。
+
+## 计划交付与更新频率
+
+- **execution_brief（按需）**：仅当用户明确要求交接/执行文档时，阶段冻结后生成/更新，含目标、范围、任务顺序、DoD、验证门禁等。
+- 每完成一个 Phase（或子计划）：更新对应 **effective** 下 \`task_plan.md\` 状态，并写 \`progress.md\`。
+- 约每 2 次浏览/检索：结论记入 **effective** 的 \`findings.md\`。
+- **安全边界**：\`task_plan.md\` 会被 hooks 反复读入；不可信原文进 \`findings.md\`，\`task_plan.md\` 只保留消化后的结论与决策摘要。
+
+## 对用户的输出要求
+
+- 先给出 **effective** 的 \`task_plan.md\` 骨架（总纲则含索引表；子计划则含 Phases）。
+- 再开始大范围实现或搜索。
+- 文档交付请求收尾时，说明 \`execution_brief.md\` 可作实施输入（若已生成）。
+
+## 工具
+
+- \`./doc/plans/plan.sh new <plan-id>\`、\`use\`、\`list\` 支持路径 id；\`list\` 列出所有含 \`task_plan.md\` 的计划目录（缩进表示父子）。
+- 对话中 \`[计划: <plan-id>]\` / \`[plan: <plan-id>]\` 可切换 \`ACTIVE\`（**不**修改 \`SUB_ACTIVE\`）。
 EOF
 
 cat > "${HOOKS_DIR}/user-prompt-submit.sh" <<'EOF'
 #!/bin/bash
-# planning-with-files: User prompt submit hook for Cursor
+# planning-with-files-ext: User prompt submit hook for Cursor
 # Injects plan context on every user message.
 
-BASE_DIR="doc/plans"
+set -euo pipefail
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${HOOK_DIR}/../.." && pwd)"
+BASE_DIR="${REPO_ROOT}/doc/plans"
 ACTIVE_FILE="${BASE_DIR}/ACTIVE"
+
+# shellcheck source=doc/plans/planning-paths.sh
+source "${BASE_DIR}/planning-paths.sh"
 
 extract_prompt_from_stdin() {
   local stdin_content
@@ -127,13 +242,18 @@ parse_plan_id_from_prompt() {
   fi
 
   local plan_id
-  plan_id="$(printf '%s' "${prompt_text}" | sed -nE 's/.*\[(计划|plan)[[:space:]]*:[[:space:]]*([a-zA-Z0-9._-]+)\].*/\2/p' | head -n 1)"
+  plan_id="$(printf '%s' "${prompt_text}" | sed -nE 's/.*\[(计划|plan)[[:space:]]*:[[:space:]]*([a-zA-Z0-9._/-]+)\].*/\2/p' | head -n 1)"
   echo "${plan_id}"
 }
 
 switch_active_if_needed() {
   local plan_id="${1:-}"
   if [ -z "${plan_id}" ]; then
+    return
+  fi
+
+  if ! planning_validate_path_id "${plan_id}"; then
+    echo "[planning-with-files] 提示中的 plan-id 校验失败，忽略切换: ${plan_id}" >&2
     return
   fi
 
@@ -144,24 +264,29 @@ switch_active_if_needed() {
   fi
 
   echo "${plan_id}" > "${ACTIVE_FILE}"
-  echo "[planning-with-files] 已根据提示切换 ACTIVE: ${plan_id}" >&2
+  echo "[planning-with-files] 已根据提示切换 ACTIVE: ${plan_id}（未修改各计划目录下 SUB_ACTIVE）" >&2
 }
 
 PROMPT_FROM_STDIN="$(extract_prompt_from_stdin)"
 PLAN_ID_FROM_PROMPT="$(parse_plan_id_from_prompt "${PROMPT_FROM_STDIN}")"
 switch_active_if_needed "${PLAN_ID_FROM_PROMPT}"
 
-ACTIVE_DIR=""
+ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_DIR="$(tr -d ' \r\n\t' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
 fi
 
-PLAN_FILE="${BASE_DIR}/${ACTIVE_DIR}/task_plan.md"
-FINDINGS_FILE="${BASE_DIR}/${ACTIVE_DIR}/findings.md"
-PROGRESS_FILE="${BASE_DIR}/${ACTIVE_DIR}/progress.md"
+EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
+if [ -z "${EFFECTIVE_SUBPATH}" ]; then
+  exit 0
+fi
+
+PLAN_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/task_plan.md"
+FINDINGS_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/findings.md"
+PROGRESS_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/progress.md"
 
 if [ -f "${PLAN_FILE}" ]; then
-  echo "[planning-with-files] ACTIVE PLAN (${ACTIVE_DIR}) — current state:"
+  echo "[planning-with-files] ACTIVE='${ACTIVE_LINE}' effective='${EFFECTIVE_SUBPATH}' — current state:"
   head -50 "${PLAN_FILE}"
   echo ""
   echo "=== recent progress ==="
@@ -174,19 +299,29 @@ EOF
 
 cat > "${HOOKS_DIR}/pre-tool-use.sh" <<'EOF'
 #!/bin/bash
-# planning-with-files: Pre-tool-use hook for Cursor
+# planning-with-files-ext: Pre-tool-use hook for Cursor
 
-BASE_DIR="doc/plans"
+set -euo pipefail
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${HOOK_DIR}/../.." && pwd)"
+BASE_DIR="${REPO_ROOT}/doc/plans"
 ACTIVE_FILE="${BASE_DIR}/ACTIVE"
 
-ACTIVE_DIR=""
+# shellcheck source=doc/plans/planning-paths.sh
+source "${BASE_DIR}/planning-paths.sh"
+
+ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_DIR="$(tr -d ' \r\n\t' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
 fi
 
-PLAN_FILE="${BASE_DIR}/${ACTIVE_DIR}/task_plan.md"
-if [ -f "${PLAN_FILE}" ]; then
-  head -30 "${PLAN_FILE}" >&2
+EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
+if [ -n "${EFFECTIVE_SUBPATH}" ]; then
+  PLAN_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/task_plan.md"
+  if [ -f "${PLAN_FILE}" ]; then
+    head -30 "${PLAN_FILE}" >&2
+  fi
 fi
 
 echo '{"decision": "allow"}'
@@ -195,18 +330,30 @@ EOF
 
 cat > "${HOOKS_DIR}/post-tool-use.sh" <<'EOF'
 #!/bin/bash
-# planning-with-files: Post-tool-use hook for Cursor
+# planning-with-files-ext: Post-tool-use hook for Cursor
 
-BASE_DIR="doc/plans"
+set -euo pipefail
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${HOOK_DIR}/../.." && pwd)"
+BASE_DIR="${REPO_ROOT}/doc/plans"
 ACTIVE_FILE="${BASE_DIR}/ACTIVE"
 
-ACTIVE_DIR=""
+# shellcheck source=doc/plans/planning-paths.sh
+source "${BASE_DIR}/planning-paths.sh"
+
+ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_DIR="$(tr -d ' \r\n\t' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
 fi
 
-PLAN_FILE="${BASE_DIR}/${ACTIVE_DIR}/task_plan.md"
-PROGRESS_FILE="${BASE_DIR}/${ACTIVE_DIR}/progress.md"
+EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
+if [ -z "${EFFECTIVE_SUBPATH}" ]; then
+  exit 0
+fi
+
+PLAN_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/task_plan.md"
+PROGRESS_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/progress.md"
 
 if [ -f "${PLAN_FILE}" ]; then
   echo "[planning-with-files] Update ${PROGRESS_FILE} with what you just did. If a phase is now complete, update ${PLAN_FILE} status."
@@ -216,18 +363,26 @@ EOF
 
 cat > "${HOOKS_DIR}/stop.sh" <<'EOF'
 #!/bin/bash
-# planning-with-files: Stop hook for Cursor
+# planning-with-files-ext: Stop hook for Cursor
 
-BASE_DIR="doc/plans"
+set -euo pipefail
+
+HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${HOOK_DIR}/../.." && pwd)"
+BASE_DIR="${REPO_ROOT}/doc/plans"
 ACTIVE_FILE="${BASE_DIR}/ACTIVE"
 
-ACTIVE_DIR=""
+# shellcheck source=doc/plans/planning-paths.sh
+source "${BASE_DIR}/planning-paths.sh"
+
+ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_DIR="$(tr -d ' \r\n\t' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
 fi
 
-PLAN_FILE="${BASE_DIR}/${ACTIVE_DIR}/task_plan.md"
-if [ ! -f "${PLAN_FILE}" ]; then
+EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
+PLAN_FILE="${BASE_DIR}/${EFFECTIVE_SUBPATH}/task_plan.md"
+if [ -z "${EFFECTIVE_SUBPATH}" ] || [ ! -f "${PLAN_FILE}" ]; then
   exit 0
 fi
 
@@ -245,10 +400,12 @@ fi
 : "${TOTAL:=0}"
 : "${COMPLETE:=0}"
 
+REL_PROGRESS="doc/plans/${EFFECTIVE_SUBPATH}/progress.md"
+
 if [ "${COMPLETE}" -eq "${TOTAL}" ] && [ "${TOTAL}" -gt 0 ]; then
-  echo "{\"followup_message\": \"[planning-with-files] ALL PHASES COMPLETE (${COMPLETE}/${TOTAL}) for plan '${ACTIVE_DIR}'. If the user has additional work, add new phases to ${PLAN_FILE} before starting.\"}"
+  echo "{\"followup_message\": \"[planning-with-files] ALL PHASES COMPLETE (${COMPLETE}/${TOTAL}) for effective plan '${EFFECTIVE_SUBPATH}' (ACTIVE='${ACTIVE_LINE}'). If the user has additional work, add new phases to ${PLAN_FILE} before starting.\"}"
 else
-  echo "{\"followup_message\": \"[planning-with-files] Task incomplete (${COMPLETE}/${TOTAL} phases done) for plan '${ACTIVE_DIR}'. Update doc/plans/${ACTIVE_DIR}/progress.md, then read ${PLAN_FILE} and continue working on remaining phases.\"}"
+  echo "{\"followup_message\": \"[planning-with-files] Task incomplete (${COMPLETE}/${TOTAL} phases done) for effective plan '${EFFECTIVE_SUBPATH}' (ACTIVE='${ACTIVE_LINE}'). Update ${REL_PROGRESS}, then read ${PLAN_FILE} and continue working on remaining phases.\"}"
 fi
 exit 0
 EOF
@@ -258,16 +415,18 @@ cat > "${PLANS_DIR}/new-plan.sh" <<'EOF'
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-PLANS_DIR="${ROOT_DIR}/doc/plans"
+PLANS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# shellcheck source=planning-paths.sh
+source "${PLANS_DIR}/planning-paths.sh"
 
 PLAN_ID="${1:-}"
 if [[ -z "${PLAN_ID}" ]]; then
   echo "用法: ./doc/plans/new-plan.sh <plan-id>" >&2
+  echo "  plan-id：相对 doc/plans 的路径，一至两段（如 feature-a 或 feature-a/T1），段内仅字母数字._-" >&2
   exit 1
 fi
-if [[ ! "${PLAN_ID}" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-  echo "plan-id 非法：仅允许字母、数字、点号、下划线、连字符。" >&2
+if ! planning_validate_path_id "${PLAN_ID}"; then
   exit 1
 fi
 
@@ -405,10 +564,12 @@ cat > "${PLANS_DIR}/plan.sh" <<'EOF'
 
 set -euo pipefail
 
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-PLANS_DIR="${ROOT_DIR}/doc/plans"
+PLANS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ACTIVE_FILE="${PLANS_DIR}/ACTIVE"
 NEW_PLAN_SCRIPT="${PLANS_DIR}/new-plan.sh"
+
+# shellcheck source=planning-paths.sh
+source "${PLANS_DIR}/planning-paths.sh"
 
 usage() {
   cat <<'EOT'
@@ -416,47 +577,63 @@ usage() {
   ./doc/plans/plan.sh list
   ./doc/plans/plan.sh use <plan-id>
   ./doc/plans/plan.sh new <plan-id>
-EOT
-}
 
-is_valid_plan_id() {
-  local plan_id="${1:-}"
-  [[ "${plan_id}" =~ ^[a-zA-Z0-9._-]+$ ]]
+plan-id：相对 doc/plans 的一至两段路径（如 myplan 或 myplan/T1）；切换到父计划不会修改该目录下 SUB_ACTIVE。
+EOT
 }
 
 read_active() {
   if [[ -f "${ACTIVE_FILE}" ]]; then
-    tr -d ' \r\n\t' < "${ACTIVE_FILE}"
+    tr -d '\r\n\t ' < "${ACTIVE_FILE}"
   fi
 }
 
 cmd_list() {
-  local active
+  local active active_eff aggregated depth rel indent suf
   active="$(read_active)"
-  local found=0
+  active_eff="$(planning_resolve_effective_subpath "${PLANS_DIR}" "${active}")"
   echo "计划列表（目录: ${PLANS_DIR}）"
   if [[ -n "${active}" ]]; then
     echo "当前 ACTIVE: ${active}"
+    if [[ -n "${active_eff}" ]]; then
+      echo "当前 effective（ACTIVE + SUB_ACTIVE 解析）: ${active_eff}"
+    fi
   else
     echo "当前 ACTIVE: （未设置）"
   fi
   echo
-  local dir
-  for dir in "${PLANS_DIR}"/*; do
-    [[ -d "${dir}" ]] || continue
-    local plan_id
-    plan_id="$(basename "${dir}")"
-    [[ "${plan_id}" == "." || "${plan_id}" == ".." ]] && continue
-    found=1
-    if [[ "${plan_id}" == "${active}" ]]; then
-      echo "* ${plan_id} (ACTIVE)"
-    else
-      echo "* ${plan_id}"
-    fi
-  done
-  if [[ "${found}" -eq 0 ]]; then
+
+  aggregated="$(
+    {
+      find "${PLANS_DIR}" -type f -name task_plan.md 2>/dev/null || true
+    } | while IFS= read -r f; do
+      [[ -z "${f}" ]] && continue
+      rel="${f#"${PLANS_DIR}/"}"
+      rel="${rel%/task_plan.md}"
+      slashes="${rel//[^\/]/}"
+      depth=${#slashes}
+      printf '%d\t%s\n' "${depth}" "${rel}"
+    done | sort -n -t $'\t' -k1,1 -k2,2
+  )"
+
+  if [[ -z "${aggregated}" ]]; then
     echo "（暂无计划目录）"
+    return 0
   fi
+
+  printf '%s\n' "${aggregated}" | while IFS=$'\t' read -r depth rel; do
+    [[ -z "${rel}" ]] && continue
+    indent=""
+    if [[ "${depth}" -ge 1 ]]; then
+      indent="  "
+    fi
+    suf=""
+    [[ "${rel}" == "${active}" ]] && suf=" (ACTIVE)"
+    if [[ -n "${active_eff}" && "${rel}" == "${active_eff}" && "${active_eff}" != "${active}" ]]; then
+      suf="${suf} (effective)"
+    fi
+    echo "${indent}* ${rel}${suf}"
+  done
 }
 
 cmd_use() {
@@ -466,8 +643,7 @@ cmd_use() {
     usage >&2
     exit 1
   fi
-  if ! is_valid_plan_id "${plan_id}"; then
-    echo "错误: plan-id 非法，仅允许字母、数字、点号、下划线、连字符。" >&2
+  if ! planning_validate_path_id "${plan_id}"; then
     exit 1
   fi
   local plan_dir="${PLANS_DIR}/${plan_id}"
@@ -476,7 +652,7 @@ cmd_use() {
     exit 1
   fi
   echo "${plan_id}" > "${ACTIVE_FILE}"
-  echo "已切换当前激活计划: ${plan_id}"
+  echo "已切换当前激活计划: ${plan_id}（未修改任何 SUB_ACTIVE；父目录下 SUB_ACTIVE 由 Agent 维护）"
 }
 
 cmd_new() {
@@ -525,3 +701,4 @@ echo "  - ${CURSOR_DIR}/hooks.json"
 echo "  - ${HOOKS_DIR}/*.sh"
 echo "  - ${PLANS_DIR}/new-plan.sh"
 echo "  - ${PLANS_DIR}/plan.sh"
+echo "  - ${PLANS_DIR}/planning-paths.sh"
