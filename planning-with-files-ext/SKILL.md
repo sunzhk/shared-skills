@@ -9,8 +9,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-03-30 14:32:57
-LatestChange: 文档同步 bootstrap：路径 id、planning-paths.sh、effective_dir（SUB_ACTIVE）、总纲索引表与 hooks 行为。
+UpdatedAt: 2026-03-30 17:21:57
+LatestChange: bootstrap 增加 planning-with-files-zh 检查与可选自动安装到目标仓库 .cursor/skills/（默认启用，可关闭）。
 -->
 
 # planning-with-files-ext（Cursor 工程落地）
@@ -35,12 +35,15 @@ LatestChange: 文档同步 bootstrap：路径 id、planning-paths.sh、effective
 bash /绝对路径/到/planning-with-files-ext/bootstrap.sh
 # 或
 bash /绝对路径/到/planning-with-files-ext/bootstrap.sh /path/to/target/repo
+# 如不希望自动安装 planning-with-files-zh：
+bash /绝对路径/到/planning-with-files-ext/bootstrap.sh /path/to/target/repo --no-install-planning-with-files-zh
 ```
 
 3. 落地后检查：
    - `.cursor/rules/planning-with-files.mdc`
    - `.cursor/hooks.json` 与 `.cursor/hooks/*.sh`
    - `doc/plans/new-plan.sh`、`doc/plans/plan.sh`、`doc/plans/planning-paths.sh`（脚本已 `chmod +x`；`planning-paths.sh` 供 source，无需手跑）
+    - （可选）`.cursor/skills/planning-with-files-zh/SKILL.md`（若本机存在 `~/.agents/skills/planning-with-files-zh/SKILL.md`，bootstrap 默认会自动安装；优先软链，失败则复制）
 
 4. **若目标仓库已存在 `.cursor/hooks.json`**：`bootstrap.sh` 会先与模板期望内容做 **字节级比对**。与模板**完全一致**时才会继续写入（重复执行安全）；**不一致则立即退出（exit 1）**，在 stderr 打印 **unified diff** 与处理建议，**不会覆盖**现有文件。需合并时请手工编辑后再运行，或暂移走 `hooks.json` 后重试。
 

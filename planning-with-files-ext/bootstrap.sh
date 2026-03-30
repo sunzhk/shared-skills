@@ -2,7 +2,51 @@
 
 set -euo pipefail
 
-TARGET_ROOT="${1:-$(pwd)}"
+usage() {
+  cat <<'EOT' >&2
+用法:
+  bash /path/to/planning-with-files-ext/bootstrap.sh [target_root] [--no-install-planning-with-files-zh]
+
+说明:
+  - 默认 target_root 为当前目录。
+  - 默认会检查本机是否存在 ~/.agents/skills/planning-with-files-zh/SKILL.md，若存在则自动安装到目标仓库:
+      <target_root>/.cursor/skills/planning-with-files-zh/
+  - 如不希望自动安装，可加 --no-install-planning-with-files-zh。
+EOT
+}
+
+TARGET_ROOT=""
+INSTALL_PWFZ="1"
+
+while [[ $# -gt 0 ]]; do
+  case "${1}" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --no-install-planning-with-files-zh)
+      INSTALL_PWFZ="0"
+      shift
+      ;;
+    --*)
+      echo "[planning-with-files] 错误: 未知参数: ${1}" >&2
+      usage
+      exit 1
+      ;;
+    *)
+      if [[ -z "${TARGET_ROOT}" ]]; then
+        TARGET_ROOT="${1}"
+        shift
+      else
+        echo "[planning-with-files] 错误: 多余参数: ${1}" >&2
+        usage
+        exit 1
+      fi
+      ;;
+  esac
+done
+
+TARGET_ROOT="${TARGET_ROOT:-$(pwd)}"
 NOW="$(date "+%Y-%m-%d %H:%M:%S")"
 
 CURSOR_DIR="${TARGET_ROOT}/.cursor"
@@ -11,6 +55,56 @@ HOOKS_DIR="${CURSOR_DIR}/hooks"
 PLANS_DIR="${TARGET_ROOT}/doc/plans"
 
 mkdir -p "${RULES_DIR}" "${HOOKS_DIR}" "${PLANS_DIR}"
+
+install_planning_with_files_zh_if_possible() {
+  if [[ "${INSTALL_PWFZ}" != "1" ]]; then
+    return 0
+  fi
+
+  local src_skill_md=""
+  local home_src="${HOME}/.agents/skills/planning-with-files-zh/SKILL.md"
+  local script_dir
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+  if [[ -f "${home_src}" ]]; then
+    src_skill_md="${home_src}"
+  elif [[ -f "${script_dir}/../planning-with-files-zh/SKILL.md" ]]; then
+    src_skill_md="${script_dir}/../planning-with-files-zh/SKILL.md"
+  fi
+
+  if [[ -z "${src_skill_md}" ]]; then
+    echo "[planning-with-files] 提示: 未检测到 planning-with-files-zh（期望路径: ${home_src}）。已跳过自动安装。" >&2
+    echo "  你可以手动安装 planning-with-files-zh 到 ~/.agents/skills/，或把其目录放到目标仓库 .cursor/skills/ 下。" >&2
+    return 0
+  fi
+
+  local dest_dir="${CURSOR_DIR}/skills/planning-with-files-zh"
+  local dest_skill_md="${dest_dir}/SKILL.md"
+  mkdir -p "${dest_dir}"
+
+  if [[ -e "${dest_skill_md}" ]]; then
+    if cmp -s "${src_skill_md}" "${dest_skill_md}"; then
+      echo "[planning-with-files] planning-with-files-zh 已存在且一致: ${dest_skill_md}" >&2
+      return 0
+    fi
+    echo "[planning-with-files] 错误: 目标仓库已存在不同版本的 planning-with-files-zh: ${dest_skill_md}" >&2
+    echo "  为避免覆盖导致行为不一致，已中断。建议: 备份后手工合并/替换，或删除该目录后重试。" >&2
+    echo "--- 差异预览 (unified diff) ---" >&2
+    diff -u "${dest_skill_md}" "${src_skill_md}" >&2 || true
+    exit 1
+  fi
+
+  if ln -s "${src_skill_md}" "${dest_skill_md}" 2>/dev/null; then
+    echo "[planning-with-files] 已软链安装 planning-with-files-zh: ${dest_skill_md} -> ${src_skill_md}" >&2
+    return 0
+  fi
+
+  cp "${src_skill_md}" "${dest_skill_md}"
+  echo "[planning-with-files] 已复制安装 planning-with-files-zh: ${dest_skill_md}" >&2
+  return 0
+}
+
+install_planning_with_files_zh_if_possible
 
 cat > "${PLANS_DIR}/planning-paths.sh" <<'PLANPATHSEOF'
 #!/bin/bash

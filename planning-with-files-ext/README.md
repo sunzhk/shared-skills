@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-27 17:17:52
-LatestChange: bootstrap 对已有 hooks.json 做字节级比对，不一致则中断并打印 unified diff。
+UpdatedAt: 2026-03-30 17:21:57
+LatestChange: bootstrap 默认检查并尝试安装 planning-with-files-zh 到目标仓库 .cursor/skills/；补充 planning-paths.sh 落地产物与参数说明。
 -->
 
 # planning-with-files 项目模板
@@ -31,6 +31,8 @@ LatestChange: bootstrap 对已有 hooks.json 做字节级比对，不一致则�
 bash /path/to/planning-with-files-ext/bootstrap.sh
 # 或显式指定目标根目录：
 bash /path/to/planning-with-files-ext/bootstrap.sh /path/to/target/repo
+# 如不希望自动安装 planning-with-files-zh：
+bash /path/to/planning-with-files-ext/bootstrap.sh /path/to/target/repo --no-install-planning-with-files-zh
 ```
 
 3. 脚本会创建/覆盖以下文件：
@@ -42,10 +44,12 @@ bash /path/to/planning-with-files-ext/bootstrap.sh /path/to/target/repo
    - `.cursor/hooks/stop.sh`
    - `doc/plans/new-plan.sh`
    - `doc/plans/plan.sh`
+    - `doc/plans/planning-paths.sh`
 
 ## 说明
 
 - 默认采用三文件工作流（`task_plan.md`/`findings.md`/`progress.md`）。
 - `execution_brief.md` 为按需输出，不强制自动创建。
 - 模板会设置 hooks 与脚本可执行权限（`chmod +x`）。
+- 默认会检查本机 `~/.agents/skills/planning-with-files-zh/SKILL.md`，若存在则自动安装到目标仓库 `.cursor/skills/planning-with-files-zh/`（优先软链，失败则复制；若目标已存在不同版本则中断并打印 diff）。
 - **若目标项目已有 `.cursor/hooks.json`**：脚本会先与模板内容做**字节级比对**；**完全一致**则继续（可安全重复执行）；**不一致则立即退出**（exit 1），并在 stderr 打印 **unified diff** 与合并/备份建议，不会覆盖原文件。
