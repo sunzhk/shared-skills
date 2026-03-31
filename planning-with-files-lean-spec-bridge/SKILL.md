@@ -9,8 +9,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-03-31 16:01:57
-LatestChange: 采用标准术语「双轨协作」；明确「三件套」在 planning-with-files 中多指三文件，不再用作本桥接口令。
+UpdatedAt: 2026-03-31 16:30:42
+LatestChange: 规格步骤明确要求 Spec frontmatter 含官方示例中的 created（YYYY-MM-DD），避免协作生成漏字段。
 -->
 
 # planning-with-files + LeanSpec 桥接技能
@@ -55,7 +55,7 @@ bash .../bootstrap-bridge.sh /path/to/target/repo
    - Spec 路径：如 `specs/001-feat-auth/README.md`（以仓库实际 LeanSpec 约定为准）。
 
 2. **规格（LeanSpec）**  
-   - 若尚无对应 spec：创建或调用 `lean-spec specify …` / 手工建立 `specs/…` 文件，包含目标、场景、验收、非目标及必要 frontmatter（参见 [LeanSpec 文档](https://www.lean-spec.dev/zh-Hans/docs/guide/)）。
+   - 若尚无对应 spec：创建或调用 `lean-spec specify …` / 手工建立 `specs/…` 文件，包含目标、场景、验收、非目标；**frontmatter 须含 `created`**，日期格式为 **`YYYY-MM-DD`**（与 [LeanSpec 指南示例](https://www.lean-spec.dev/zh-Hans/docs/guide/) 一致，如 `created: 2025-11-07`）。另可按需设 `status`、`priority`、`tags`、`depends_on` 等，以官方文档为准。
 
 3. **执行计划（ext）**  
    - 运行 `./doc/plans/plan.sh new <plan-id>`（或等价），保证 **effective** 目录下存在 `task_plan.md`、`findings.md`、`progress.md`。  

@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 16:01:57
-LatestChange: §10 采用标准术语「双轨协作」；明确「三件套」指三文件，不再作为桥接口令。
+UpdatedAt: 2026-03-31 16:30:42
+LatestChange: §4 定规格：frontmatter 明确须含 created（YYYY-MM-DD），与官方指南示例对齐；示例列举补充 created。
 -->
 
 # planning-with-files-zh + planning-with-files-ext + LeanSpec 协作文档
@@ -62,7 +62,7 @@ your-project/
 ## 4. 五步协作工作流
 
 1. **定规格（LeanSpec）**  
-   在 `specs/…` 写清目标、关键场景、验收标准、非目标；必要时用 frontmatter（如 `status`、`tags`）与依赖字段（如文档中的 `depends_on` / `related` 概念）表达关系。
+   在 `specs/…` 写清目标、关键场景、验收标准、非目标；**frontmatter 须含 `created: YYYY-MM-DD`**（与 [LeanSpec 指南「一个简单示例」](https://www.lean-spec.dev/zh-Hans/docs/guide/) 一致）。另常用 `status`、`priority`、`tags`，以及依赖关系字段（如 `depends_on` / `related`，以官方文档为准）。
 
 2. **开执行计划（ext）**  
    `./doc/plans/plan.sh new <plan-id>`（或 `new-plan.sh`），保证 **effective** 目录下有 `task_plan.md`、`findings.md`、`progress.md`。
