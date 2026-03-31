@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:42:49
-LatestChange: 冷启动与示例路径中的挂载目录统一为 .cursor/shared-skills。
+UpdatedAt: 2026-03-31 16:01:57
+LatestChange: 桥接路由用语改为「双轨协作」；明确「三件套」指三文件，不用于 lean-spec 桥接。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -84,7 +84,7 @@ bash .cursor/shared-skills/configure-from-readme.sh
 `configure-from-readme.sh` **不包含** LeanSpec 的安装与 `init`。当满足以下**任一**条件时，Agent **应先检测** LeanSpec 是否可用，**不可默认用户已安装**：
 
 - 刚完成 §0 冷启动且 `AGENTS.md` 中声明了 `planning-with-files-lean-spec-bridge`（默认配置通常会包含）
-- 用户意图涉及 **LeanSpec、三件套、specs/、`SpecRef`、规格与 doc/plans 联动**
+- 用户意图涉及 **LeanSpec、`specs/`、`SpecRef`、规格与 doc/plans 联动**；或 **双轨协作 / 双轨开需求 / 规执双轨**（见桥接技能 `SKILL.md`）。**不要**把用户说的「三件套」默认路由到桥接——在 planning-with-files 语境下「三件套」多指 **三文件**（§3.4）
 - 准备读取并执行 `planning-with-files-lean-spec-bridge/SKILL.md` 中的 CLI 相关步骤
 
 **检测方式**（在项目根或当前工作目录的 shell 中执行，按顺序）：
@@ -109,7 +109,7 @@ bash .cursor/shared-skills/configure-from-readme.sh
 - 单元测试规范（主控）：`unit-test-guide-skills/unit-test-router/SKILL.md`
 - 单元测试三端子技能：`unit-test-guide-skills/unit-test-android/SKILL.md`、`unit-test-ios`、`unit-test-wechat-miniprogram`
 - 文件规划落地：`planning-with-files-ext/SKILL.md`（执行 `bootstrap.sh`、与 `planning-with-files-zh` 方法论对齐）
-- 三件套桥接（LeanSpec ↔ `doc/plans`）：`planning-with-files-lean-spec-bridge/SKILL.md`
+- 双轨协作桥接（LeanSpec `specs/` ↔ `doc/plans`）：`planning-with-files-lean-spec-bridge/SKILL.md`
 - **README 一键配置**：仓库根 `configure-from-readme.sh`（默认块在 shared-skills `README.md`，业务 README 可选覆盖；详见 `README.human.md`）
 
 需要深读时可读取：
@@ -160,6 +160,8 @@ bash .cursor/shared-skills/configure-from-readme.sh
 
 **执行要点**：读取 `planning-with-files-ext/SKILL.md`，按其中路径对目标项目根目录运行 `bootstrap.sh`；若 `hooks.json` 已存在且与模板不一致，脚本会 **exit 1** 并打印 diff，需人工合并后再试。
 
+**与 `planning-with-files-lean-spec-bridge` 的区分**：口语 **「三件套」** 在 planning-with-files 里多指 **`task_plan` / `findings` / `progress` 三文件**，**不等于** LeanSpec 桥接。当用户需要 **双轨协作**（**同时**维护 **`specs/`** 与 **`doc/plans/`**，并写 **`SpecRef` / `ExecutionPlan`**），或明确说 **双轨 / 规执双轨 / LeanSpec 与 plan 联动** 时，**必须**读取并执行 `planning-with-files-lean-spec-bridge/SKILL.md`，**不可**仅用 ext 或 `planning-with-files-zh` 代替。若用户只要文件规划、**不要** `specs/`，则走本节与 zh，**不要**执行桥接里的规格轨步骤。
+
 ### 3.5 路由到 `configure-from-readme.sh`（README 驱动落地）
 
 当用户意图是以下任一项：
@@ -201,8 +203,9 @@ bash .cursor/shared-skills/configure-from-readme.sh
 | “iOS 单测异步怎么写规范” | `unit-test-router` 或 `unit-test-ios` | 优先 Apple 官方 XCTest/Swift Testing 规则。 |
 | “微信小程序组件单测怎么做” | `unit-test-router` → `unit-test-wechat-miniprogram` | 以微信开放文档和 miniprogram-simulate 为准。 |
 | “给新项目装 planning-with-files / hooks” | `planning-with-files-ext` | 读 `SKILL.md` 后 `bootstrap.sh`；注意 `hooks.json` 冲突时中断。 |
+| “三件套”（仅指要做规划 / 未提 `specs/`） | **默认按三文件理解** | 多指 `task_plan` / `findings` / `progress` → ext/zh；若用户澄清要 **双轨** 再切桥接技能。 |
 | “README 里配好 shared-skills，一键落地到仓库” | `configure-from-readme.sh` | 先核对 README 配置块，再执行脚本；见 `README.human.md`。 |
-| “LeanSpec 和 doc/plans 联动开需求” | `planning-with-files-lean-spec-bridge` | 先确保 ext 已落地；按 §0.5 检测 LeanSpec CLI / npx，未就绪则提示用户参阅 `README.human.md`；再按技能清单建 SpecRef / ExecutionPlan。 |
+| “LeanSpec 和 doc/plans 联动” / “**按双轨**开需求” / “**双轨协作**” | `planning-with-files-lean-spec-bridge` | 先确保 ext 已落地；按 §0.5 检测 LeanSpec CLI / npx，未就绪则提示用户参阅 `README.human.md`；再按技能清单建 SpecRef / ExecutionPlan。 |
 | “帮我配置 shared-skills / 初始化技能入口” | §0 冷启动流程 | 检测 submodule → 检测 README 配置块 → 执行脚本 → 写 AGENTS.md。 |
 | “这个项目还没配置 shared-skills” | §0 冷启动流程 | 同上，Agent 可主动检测并提议执行。 |
 

@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:42:49
-LatestChange: 业务项目内 shared-skills 推荐路径改为 .cursor/shared-skills（含 submodule 示例与 AGENTS.md 说明）。
+UpdatedAt: 2026-03-31 16:01:57
+LatestChange: lean-spec 桥接小节改用标准术语「双轨协作」，与「三件套=三文件」区分。
 -->
 
 # shared-skills（给人看的说明）
@@ -43,7 +43,7 @@ LatestChange: 业务项目内 shared-skills 推荐路径改为 .cursor/shared-sk
 ### `planning-with-files-lean-spec-bridge/`
 
 - 用途：在 **ext 已落地** 的前提下，与 **LeanSpec** 做流程编排；由 Cursor 技能触发时代理按清单完成 Spec ↔ `doc/plans/` 的 `SpecRef` / `ExecutionPlan` 桥接，降低用户记忆成本。
-- 典型场景：用户说「三件套开新需求」「LeanSpec 和 planning 联动」；可选执行 `bootstrap-bridge.sh` 将协作文档复制到业务仓库 `doc/plans/COORDINATION_LEANSPEC.md`。
+- 典型场景：用户要 **双轨协作**（`specs/` + `doc/plans/` + `SpecRef`/`ExecutionPlan`）；口令建议用 **「按双轨」**、**「双轨开需求」** 或 **桥接技能全名**。口语「三件套」在 planning-with-files 里多指 **三文件**，不宜再用来指本桥接（详见桥接 `SKILL.md`「术语：双轨协作」）。可选执行 `bootstrap-bridge.sh` 将协作文档复制到业务仓库 `doc/plans/COORDINATION_LEANSPEC.md`。
 - 入口 skill：`planning-with-files-lean-spec-bridge/SKILL.md`；脚本见同目录 `bootstrap-bridge.sh`。
 - 权威协作文档：`planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md`（与桥接技能同目录；脚本复制的是该文件快照，更新后需重跑脚本或手改副本）。
 
@@ -144,7 +144,7 @@ git submodule update --remote --recursive
 planning_with_files_ext=1
 # 若为 1，则等价于 bootstrap 传入 --no-install-planning-with-files-zh
 planning_with_files_ext_no_install_pwfz=0
-# 将三件套协作文档复制到 doc/plans/COORDINATION_LEANSPEC.md
+# 将 LeanSpec↔planning 双轨协作文档复制到 doc/plans/COORDINATION_LEANSPEC.md
 lean_spec_bridge_doc=1
 # 声明要写入 AGENTS.md 的技能（相对 shared-skills 根的路径，该路径下须有 SKILL.md；不创建 .cursor/skills 软链）
 # 聚合包 code-styleguide-skills、unit-test-guide-skills 可写顶层目录名，脚本会自动改为 …/styleguide-router、…/unit-test-router

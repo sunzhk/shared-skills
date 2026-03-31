@@ -3,20 +3,27 @@ name: planning-with-files-lean-spec-bridge
 description: >
   在已使用 planning-with-files-ext（doc/plans、hooks）的前提下，与 LeanSpec（specs/）做一键式桥接与流程编排：
   落地协作文档副本、创建/对齐 Spec 与 plan-id、写入 SpecRef/ExecutionPlan 双向引用、按清单执行而无需用户记步骤。
-  在用户提到三件套协作、LeanSpec 联动 planning、降低心智负担、自动协调规格与执行计划、开新需求要同时建 spec 和 plan 时使用。
-  触发词：三件套、LeanSpec 协作、规格联动、SpecRef、协调 planning 与 leanspec、桥接、一键落地协作。
+  本工作流的标准名称是「双轨协作」：规格轨（specs/）与执行轨（doc/plans/）并行，planning-with-files-zh 的纪律贯穿执行侧；勿与口语「三件套」混淆——后者在 planning-with-files 语境下通常指 task_plan/findings/progress 三文件。
+  在用户提到双轨协作、双轨开需求、规执双轨、规格与执行双轨、LeanSpec 与 doc/plans 联动、SpecRef、同时建 spec 和 plan、桥接时使用。
+  触发词：双轨协作、双轨开需求、规执双轨、规格执行双轨、LeanSpec doc/plans 联动、SpecRef、ExecutionPlan、桥接。
 ---
 
 <!--
-UpdatedAt: 2026-03-31 10:31:37
-LatestChange: 补充：跨项目一键落地请优先用业务 README 中 shared-skills-config + 仓库根 configure-from-readme.sh。
+UpdatedAt: 2026-03-31 16:01:57
+LatestChange: 采用标准术语「双轨协作」；明确「三件套」在 planning-with-files 中多指三文件，不再用作本桥接口令。
 -->
 
 # planning-with-files + LeanSpec 桥接技能
 
+## 术语：双轨协作（推荐口令用此名）
+
+- **双轨协作**：**规格轨** — LeanSpec（`specs/`）；**执行轨** — planning-with-files-ext（`doc/plans/<plan-id>/`、hooks）；**纪律** — planning-with-files-zh（外部进 `findings.md`、防注入等）。桥接动作核心是 **`SpecRef` / `ExecutionPlan` 双向一行引用**。  
+- **「三件套」**：在 planning-with-files / 团队口语里多指 **`task_plan.md` / `findings.md` / `progress.md` 三文件**，与本技能的 LeanSpec 桥接**不是同一概念**；文档与口令中**不要用「三件套」指代双轨协作**，以免 Agent 只建执行轨、漏掉 `specs/`。  
+- 若用户只要文件规划、不要规格，应走 **planning-with-files-zh / ext**，**不要**用本技能冒充已完成规格轨。
+
 ## 目标
 
-把 **LeanSpec**（`specs/` 规格真相源）与 **planning-with-files-ext**（`doc/plans/<plan-id>/` 执行真相源）的协作**程序化**：由代理按本技能执行，用户只需说意图（例如「按三件套开新需求 auth」），不必自己记顺序与字段名。
+把 **LeanSpec**（`specs/` 规格真相源）与 **planning-with-files-ext**（`doc/plans/<plan-id>/` 执行真相源）的协作**程序化**：由代理按本技能执行，用户只需说意图（例如「**按双轨**为 auth 开新需求，plan-id `feat-auth`」），不必自己记顺序与字段名。
 
 **planning-with-files-zh** 的纪律（外部内容进 `findings.md`、`task_plan.md` 防注入、两动作记发现等）在桥接流程中**一律遵守**；若仓库已安装该技能，复杂任务中应对照其全文。
 
@@ -39,7 +46,7 @@ bash .../bootstrap-bridge.sh /path/to/target/repo
 
 作用：在 `doc/plans/COORDINATION_LEANSPEC.md` 写入（复制）权威协作文档副本，便于人类与代理在仓库内就近阅读。**不修改** `.cursor/rules` 或 hooks，避免与已有 `hooks.json` 冲突。
 
-## 代理标准流程（用户要「三件套开功能」时执行）
+## 代理标准流程（用户要 **LeanSpec + doc/plans 联动** 开功能时执行）
 
 按顺序完成；每步可简短向用户确认规格名 / plan-id（或由用户提示给出）。
 

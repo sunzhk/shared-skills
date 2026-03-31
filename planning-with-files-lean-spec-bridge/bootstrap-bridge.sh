@@ -1,5 +1,5 @@
 #!/bin/bash
-# planning-with-files-lean-spec-bridge: 将三件套协作文档复制到目标仓库 doc/plans/，便于就近查阅。
+# planning-with-files-lean-spec-bridge: 将「双轨协作」（LeanSpec↔doc/plans）协作文档复制到目标仓库 doc/plans/，便于就近查阅。
 # 不修改 hooks/rules。需已存在 doc/plans（通常由 planning-with-files-ext 的 bootstrap 创建）。
 
 set -euo pipefail

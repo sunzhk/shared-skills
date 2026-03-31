@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:42:49
-LatestChange: §10.1 中 configure-from-readme 示例路径改为 .cursor/shared-skills。
+UpdatedAt: 2026-03-31 16:01:57
+LatestChange: §10 采用标准术语「双轨协作」；明确「三件套」指三文件，不再作为桥接口令。
 -->
 
 # planning-with-files-zh + planning-with-files-ext + LeanSpec 协作文档
@@ -137,7 +137,15 @@ your-project/
 | **Cursor 技能** `planning-with-files-lean-spec-bridge` | 触发后代理按固定清单：确认 ext 已落地 → 建/对齐 `specs/` → `plan.sh new` → 写入 `SpecRef` / `ExecutionPlan` → 填 Phase 骨架 | 目录：`shared-skills/planning-with-files-lean-spec-bridge/SKILL.md`；安装方式同 ext（软链或复制到 `~/.cursor/skills/` 或项目 `.cursor/skills/`） |
 | **`bootstrap-bridge.sh`** | 把**本协作文档**复制到目标仓库 `doc/plans/COORDINATION_LEANSPEC.md`，就近查阅 | 不修改 hooks/rules；可与 ext 的 `bootstrap.sh` 分开执行 |
 
-**推荐用户口令示例**：「按三件套给 `<功能名>` 建 spec 和 plan，plan-id 用 `<id>`。」代理应读取桥接技能并执行其中「代理标准流程」。
+**标准术语：双轨协作** — **规格轨**（`specs/`）与 **执行轨**（`doc/plans/`）并行，用 `SpecRef` / `ExecutionPlan` 轻量对齐；`planning-with-files-zh` 的纪律落在执行轨。**不要用「三件套」命名本工作流**：在 planning-with-files 语境下，「三件套」几乎总是指 **`task_plan` / `findings` / `progress` 三文件**，用作桥接口令会系统性误导 Agent。
+
+**推荐用户口令示例**（按不易误解程度排序）：
+
+1. **最明确**：「用 **planning-with-files-lean-spec-bridge**：为 `<功能名>` 建 **`specs/…` 规格** + **`doc/plans/<id>/` 计划**，并写 **SpecRef 与 ExecutionPlan**。」  
+2. **简短（推荐日常）**：「**按双轨**给 `<功能名>` 建 spec 和 plan，plan-id 用 `<id>`。」  
+3. **同义说法**：「**双轨开需求** `<功能名>`，plan `<id>`。」「**规执双轨**：…」（规=规格轨，执=执行轨。）
+
+代理应读取桥接技能并执行其中「代理标准流程」；若用户只说要「文件规划、不要 specs」，则走 zh/ext，**不要**执行规格轨步骤。
 
 **与 LeanSpec MCP**：若已配置 [AI 集成](https://www.lean-spec.dev/zh-Hans/docs/guide/) 中的 MCP，检索/更新 spec 可走 MCP；`doc/plans/` 三文件仍走文件与 ext hooks。
 
