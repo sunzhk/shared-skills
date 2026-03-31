@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 11:26:41
-LatestChange: 在本文档内预置 shared-skills-config 默认块（含 cursor_skill_links）；configure-from-readme.sh 先读此块再合并业务 README，空项目可不写配置。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: AGENTS.md 与文档约定挂载路径统一为 .cursor/shared-skills（原 skills-shared）。
 -->
 
 # shared-skills 总纲
@@ -63,7 +63,7 @@ cursor_skill_links=planning-with-files-ext,planning-with-files-lean-spec-bridge,
 - `planning-with-files-lean-spec-bridge/`
   - 入口：`planning-with-files-lean-spec-bridge/SKILL.md`（LeanSpec ↔ `doc/plans` 编排）
   - 脚本：`planning-with-files-lean-spec-bridge/bootstrap-bridge.sh`
-- `configure-from-readme.sh`（仓库根）：先读**本文档**内 `<!-- shared-skills-config -->` 默认块（含预置 `cursor_skill_links`），再合并业务项目 `README.md` 中的同名块（可省略）；自动执行 bootstrap、**解析并校验**技能路径、**写入业务项目 `AGENTS.md`**（路径指向 `.cursor/skills-shared/...`）
+- `configure-from-readme.sh`（仓库根）：先读**本文档**内 `<!-- shared-skills-config -->` 默认块（含预置 `cursor_skill_links`），再合并业务项目 `README.md` 中的同名块（可省略）；自动执行 bootstrap、**解析并校验**技能路径、**写入业务项目 `AGENTS.md`**（路径指向 `.cursor/shared-skills/...`）
 
 ## 路由说明
 

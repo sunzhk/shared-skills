@@ -9,8 +9,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-03-31 10:31:37
-LatestChange: 补充：跨项目一键落地优先用业务 README 中 shared-skills-config + shared-skills/configure-from-readme.sh。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: configure-from-readme 示例路径改为 .cursor/shared-skills。
 -->
 
 # planning-with-files-ext（Cursor 工程落地）
@@ -28,7 +28,7 @@ LatestChange: 补充：跨项目一键落地优先用业务 README 中 shared-sk
 
 ## 一键落地（代理执行）
 
-**多项目共享 shared-skills 时（推荐）**：让业务项目在根 `README.md` 写入 `<!-- shared-skills-config -->` 并设 `planning_with_files_ext=1`（及 `planning_with_files_ext_no_install_pwfz` 等），再在项目根执行 `bash .cursor/skills-shared/configure-from-readme.sh`。约定与键名见 `shared-skills/README.human.md`「README 驱动一键配置」。
+**多项目共享 shared-skills 时（推荐）**：让业务项目在根 `README.md` 写入 `<!-- shared-skills-config -->` 并设 `planning_with_files_ext=1`（及 `planning_with_files_ext_no_install_pwfz` 等），再在项目根执行 `bash .cursor/shared-skills/configure-from-readme.sh`。约定与键名见 `shared-skills/README.human.md`「README 驱动一键配置」。
 
 **单项目直接执行**：
 

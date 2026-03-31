@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:35:34
-LatestChange: 协作文档迁至本目录（planning-with-files-lean-spec-bridge/）；§9 补充仓库内路径说明。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: §10.1 中 configure-from-readme 示例路径改为 .cursor/shared-skills。
 -->
 
 # planning-with-files-zh + planning-with-files-ext + LeanSpec 协作文档
@@ -146,7 +146,7 @@ your-project/
 跨项目共享 **shared-skills** 时，不要在各仓库手抄 `cursor_skill_links`：**默认块已写在 shared-skills 仓库根 `README.md`**；仅在需要覆盖开关或技能列表时，再在**业务项目根 `README.md`** 加入同名块（键名见 `shared-skills/README.human.md`「README 驱动一键配置」）。然后在项目根执行：
 
 ```bash
-bash .cursor/skills-shared/configure-from-readme.sh
+bash .cursor/shared-skills/configure-from-readme.sh
 ```
 
 脚本会先加载 shared-skills 根 README 中的默认块，再与业务 README 块合并；按**合并后**开关依次执行 `planning-with-files-ext/bootstrap.sh`、可选 `bootstrap-bridge.sh`、**解析** `cursor_skill_links`（如聚合包展开为 router）、校验 `SKILL.md` 并将路径写入 **`AGENTS.md`**（不创建 `.cursor/skills` 软链）。**启用项 = 默认块 ∪ 业务 README 覆盖**（与 `AGENTS.md` 路由列表互补）。

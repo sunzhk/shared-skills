@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 10:31:37
-LatestChange: 补充：业务项目可通过 README 中 shared-skills-config + 上级仓库 configure-from-readme.sh 一键调用本 bootstrap。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: configure-from-readme 示例路径改为 .cursor/shared-skills。
 -->
 
 # planning-with-files 项目模板
@@ -26,7 +26,7 @@ LatestChange: 补充：业务项目可通过 README 中 shared-skills-config + �
 
 ### 多项目：README 声明 + `configure-from-readme.sh`（推荐）
 
-业务项目根 `README.md` 加入 `<!-- shared-skills-config` … `planning_with_files_ext=1` … `-->`，并执行 shared-skills 根目录的 `configure-from-readme.sh`（典型：`bash .cursor/skills-shared/configure-from-readme.sh`）。详见上级目录 `README.human.md`「README 驱动一键配置」。
+业务项目根 `README.md` 加入 `<!-- shared-skills-config` … `planning_with_files_ext=1` … `-->`，并执行 shared-skills 根目录的 `configure-from-readme.sh`（典型：`bash .cursor/shared-skills/configure-from-readme.sh`）。详见上级目录 `README.human.md`「README 驱动一键配置」。
 
 ### 单项目：直接跑 `bootstrap.sh`
 

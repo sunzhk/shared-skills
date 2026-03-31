@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:13:53
-LatestChange: 新增 §0.5：检测 LeanSpec CLI（command -v / npx）；未就绪时提示用户参阅 README.human.md 自行安装初始化。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: 冷启动与示例路径中的挂载目录统一为 .cursor/shared-skills。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -14,7 +14,7 @@ LatestChange: 新增 §0.5：检测 LeanSpec CLI（command -v / npx）；未就�
 ### 0.1 触发条件（满足任一即触发）
 
 - 用户提及「配置 shared-skills」「接入共享技能」「初始化项目」等
-- Agent 发现 `.cursor/skills-shared/` 目录存在但 `AGENTS.md` 中没有 shared-skills 路径声明
+- Agent 发现 `.cursor/shared-skills/` 目录存在但 `AGENTS.md` 中没有 shared-skills 路径声明
 - 用户要求使用某个 shared-skills 内的技能，但当前项目尚未配置
 
 ### 0.2 自动配置流程
@@ -22,7 +22,7 @@ LatestChange: 新增 §0.5：检测 LeanSpec CLI（command -v / npx）；未就�
 **步骤 1：检测 submodule 状态**
 
 ```bash
-ls .cursor/skills-shared/configure-from-readme.sh
+ls .cursor/shared-skills/configure-from-readme.sh
 ```
 
 - 若文件存在 → 继续步骤 2
@@ -34,7 +34,7 @@ ls .cursor/skills-shared/configure-from-readme.sh
 
 **步骤 2：业务 README 中的配置块（可选）**
 
-- `configure-from-readme.sh` 会**先**读取 `.cursor/skills-shared/README.md`（即 shared-skills 根 README）中的默认 `<!-- shared-skills-config -->`（已含 `cursor_skill_links`），**再**用业务项目根 `README.md` 中的同名块覆盖。
+- `configure-from-readme.sh` 会**先**读取 `.cursor/shared-skills/README.md`（即 shared-skills 根 README）中的默认 `<!-- shared-skills-config -->`（已含 `cursor_skill_links`），**再**用业务项目根 `README.md` 中的同名块覆盖。
 - 若业务项目无 `README.md`、或 README 中无该块 → **无需补写**，直接执行步骤 3 即可得到完整 AGENTS.md 与 bootstrap。
 - 仅当需要关闭 `lean_spec_bridge_doc`、调整 `cursor_skill_links` 等时，再在业务 `README.md` 中加入配置块覆盖对应键。
 
@@ -42,13 +42,13 @@ ls .cursor/skills-shared/configure-from-readme.sh
 
 ```bash
 cd <项目根>
-bash .cursor/skills-shared/configure-from-readme.sh
+bash .cursor/shared-skills/configure-from-readme.sh
 ```
 
 该脚本会：
 - 写入 `.cursor/rules/`、hooks、`doc/plans/` 等（按配置块决定）
 - **解析** `cursor_skill_links`：`code-styleguide-skills` → `code-styleguide-skills/styleguide-router`，`unit-test-guide-skills` → `unit-test-guide-skills/unit-test-router`；再校验各解析后路径在 shared-skills 中存在且含 `SKILL.md`（不创建 `.cursor/skills` 软链）
-- **写入或追加 `AGENTS.md`**（将 `.cursor/skills-shared/<解析后路径>/SKILL.md` 写入，路径可含 `/`，使 Agent 后续能自动路由）
+- **写入或追加 `AGENTS.md`**（将 `.cursor/shared-skills/<解析后路径>/SKILL.md` 写入，路径可含 `/`，使 Agent 后续能自动路由）
 
 **步骤 4：验证**
 
@@ -61,11 +61,11 @@ bash .cursor/skills-shared/configure-from-readme.sh
 ```markdown
 ## Shared Skills（由 configure-from-readme.sh 生成，勿手动删除此行）
 
-- `.cursor/skills-shared/planning-with-files-ext/SKILL.md`
-- `.cursor/skills-shared/planning-with-files-lean-spec-bridge/SKILL.md`
-- `.cursor/skills-shared/eng-practices/SKILL.md`
-- `.cursor/skills-shared/code-styleguide-skills/styleguide-router/SKILL.md`
-- `.cursor/skills-shared/unit-test-guide-skills/unit-test-router/SKILL.md`
+- `.cursor/shared-skills/planning-with-files-ext/SKILL.md`
+- `.cursor/shared-skills/planning-with-files-lean-spec-bridge/SKILL.md`
+- `.cursor/shared-skills/eng-practices/SKILL.md`
+- `.cursor/shared-skills/code-styleguide-skills/styleguide-router/SKILL.md`
+- `.cursor/shared-skills/unit-test-guide-skills/unit-test-router/SKILL.md`
 ```
 
 - 若 `AGENTS.md` 已存在且包含 `## Shared Skills` 节 → 更新该节内容，不影响其他节
@@ -77,7 +77,7 @@ bash .cursor/skills-shared/configure-from-readme.sh
 配置完成后，Agent 在后续会话中：
 1. 读取 `AGENTS.md` → 获知 skill 路径
 2. 按 §3 路由规则 → 选择正确 skill
-3. 直接读取 `.cursor/skills-shared/<skill>/SKILL.md` → 执行
+3. 直接读取 `.cursor/shared-skills/<skill>/SKILL.md` → 执行
 
 ### 0.5 LeanSpec CLI 检测（与桥接技能相关）
 
@@ -172,7 +172,7 @@ bash .cursor/skills-shared/configure-from-readme.sh
 
 1. 默认配置（含 `cursor_skill_links`）在 **shared-skills 仓库根 `README.md`** 的 `<!-- shared-skills-config -->`；业务项目 README 中的块**可选**，用于覆盖。无业务块时直接执行即可。
 2. 在业务项目根执行（submodule 典型路径示例）：
-   - `bash .cursor/skills-shared/configure-from-readme.sh`
+   - `bash .cursor/shared-skills/configure-from-readme.sh`
    - 或 `SKILLS_ROOT=<shared-skills 根> bash <shared-skills>/configure-from-readme.sh <项目根>`
 3. 脚本会按固定顺序调用 `planning-with-files-ext/bootstrap.sh`、可选 `bootstrap-bridge.sh`、**解析并校验** `cursor_skill_links`、**写入 `AGENTS.md`**；失败时按脚本 stderr 处理（如 `hooks.json` 冲突、技能目录不存在或缺少 `SKILL.md`）。
 

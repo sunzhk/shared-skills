@@ -2,7 +2,7 @@
 # 读取 <!-- shared-skills-config ... -->：先应用 shared-skills 本仓库 README.md 中的默认块（含预置 cursor_skill_links），
 # 再用业务项目根 README.md 中的块覆盖同名键（业务可整段省略，实现「只给 Agent 仓库地址、clone 后一条命令」）。
 # 业务项目可无 README.md：此时仅使用仓库默认。若两处均无配置块则报错。
-# 依次执行 planning-with-files-ext / lean-spec 桥接 / 解析并校验 cursor_skill_links → 写入 AGENTS.md（## Shared Skills）。
+# 依次执行 planning-with-files-ext / lean-spec 桥接 / 解析并校验 cursor_skill_links → 写入 AGENTS.md（## Shared Skills；路径前缀默认 .cursor/shared-skills）。
 # 聚合包 code-styleguide-skills、unit-test-guide-skills 会解析为各自 router 子路径。不创建 .cursor/skills 软链。
 # 本脚本须保留在 shared-skills 仓库根目录，以便解析 SKILLS_ROOT。
 
@@ -15,6 +15,7 @@ usage() {
 
 环境变量:
   SKILLS_ROOT   可选。默认为本脚本所在目录（shared-skills 根）。
+  CURSOR_SHARED_SKILLS_REL  可选。写入 AGENTS.md 的技能路径前缀（默认 .cursor/shared-skills）。
 
 说明:
   - 默认配置（含 cursor_skill_links）预写在 shared-skills 仓库根 README.md 的 <!-- shared-skills-config --> 中；业务项目 README 可省略或只写需要覆盖的键。
@@ -39,6 +40,8 @@ TARGET_ROOT="${1:-$(pwd)}"
 TARGET_ROOT="$(cd "${TARGET_ROOT}" && pwd)"
 README="${TARGET_ROOT}/README.md"
 SKILLS_README="${SKILLS_ROOT}/README.md"
+# 业务项目内 shared-skills 挂载路径（相对项目根），须与文档约定一致；可通过环境变量覆盖。
+CURSOR_SHARED_SKILLS_REL="${CURSOR_SHARED_SKILLS_REL:-.cursor/shared-skills}"
 
 extract_config_block() {
   local f="$1"
@@ -242,7 +245,7 @@ write_agents_md() {
   local agents_md="${TARGET_ROOT}/AGENTS.md"
   local section_marker="## Shared Skills（由 configure-from-readme.sh 生成，勿手动删除此行）"
 
-  # 构建新的 ## Shared Skills 节内容（按 submodule 典型路径生成条目）
+  # 构建新的 ## Shared Skills 节内容（路径前缀见 CURSOR_SHARED_SKILLS_REL）
   local new_section
   new_section="${section_marker}"$'\n'
   _saved_ifs="${IFS}"
@@ -254,7 +257,7 @@ write_agents_md() {
     local sname
     sname="$(trim "${entry}")"
     [[ -z "${sname}" ]] && continue
-    new_section+=$'\n'"- \`.cursor/skills-shared/${sname}/SKILL.md\`"
+    new_section+=$'\n'"- \`${CURSOR_SHARED_SKILLS_REL}/${sname}/SKILL.md\`"
   done
 
   if [[ ! -f "${agents_md}" ]]; then

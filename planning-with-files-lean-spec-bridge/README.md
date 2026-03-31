@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:35:34
-LatestChange: 协作文档与本目录同路径；README 内引用从 ../ 改为本目录文件名。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: configure-from-readme 示例路径改为 .cursor/shared-skills。
 -->
 
 # planning-with-files-lean-spec-bridge
@@ -14,7 +14,7 @@ LatestChange: 协作文档与本目录同路径；README 内引用从 ../ 改为
 
 ## 脚本（人类或代理执行）
 
-**多项目推荐**：在业务项目 README 配置块中设 `lean_spec_bridge_doc=1`，并执行 `bash .cursor/skills-shared/configure-from-readme.sh`（见 `README.human.md`）。
+**多项目推荐**：在业务项目 README 配置块中设 `lean_spec_bridge_doc=1`，并执行 `bash .cursor/shared-skills/configure-from-readme.sh`（见 `README.human.md`）。
 
 **单独执行**：
 

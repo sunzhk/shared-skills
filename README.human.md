@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:35:34
-LatestChange: 协作文档路径改为 planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: 业务项目内 shared-skills 推荐路径改为 .cursor/shared-skills（含 submodule 示例与 AGENTS.md 说明）。
 -->
 
 # shared-skills（给人看的说明）
@@ -77,7 +77,7 @@ LatestChange: 协作文档路径改为 planning-with-files-lean-spec-bridge/plan
 #### A1. 首次接入（在业务项目根目录）
 
 ```bash
-git submodule add <shared-skills-repo-url> .cursor/skills-shared
+git submodule add <shared-skills-repo-url> .cursor/shared-skills
 git submodule update --init --recursive
 ```
 
@@ -122,13 +122,13 @@ git submodule update --remote --recursive
 
 ## submodule 路径约定
 
-- 推荐路径：`.cursor/skills-shared`
+- 推荐路径：`.cursor/shared-skills`
 - 该路径下的典型结构：
-  - `.cursor/skills-shared/configure-from-readme.sh`（README 驱动一键配置入口）
-  - `.cursor/skills-shared/code-styleguide-skills/`
-  - `.cursor/skills-shared/eng-practices/`
-  - `.cursor/skills-shared/unit-test-guide-skills/`
-  - `.cursor/skills-shared/planning-with-files-ext/`
+  - `.cursor/shared-skills/configure-from-readme.sh`（README 驱动一键配置入口）
+  - `.cursor/shared-skills/code-styleguide-skills/`
+  - `.cursor/shared-skills/eng-practices/`
+  - `.cursor/shared-skills/unit-test-guide-skills/`
+  - `.cursor/shared-skills/planning-with-files-ext/`
 
 ## README 驱动一键配置（推荐：落仓库规则与技能入口）
 
@@ -158,18 +158,18 @@ cursor_skill_links=planning-with-files-ext,planning-with-files-lean-spec-bridge,
 
 **不在此脚本内**：**LeanSpec** 的 CLI 安装、`lean-spec init` / `npx lean-spec init`、MCP 配置等——详见上文 **「LeanSpec 安装与初始化（须自行完成）」**；需要时可后续在配置块增加新键并在 `configure-from-readme.sh` 中实现自动化。
 
-**`cursor_skill_links` 说明**：逗号分隔；每一项解析后为 **shared-skills 根下的相对路径**，且该路径（最后一级目录）下须有 `SKILL.md`。普通技能包为单层名（如 `eng-practices`、`planning-with-files-ext`）。**聚合包**可写顶层目录名 `code-styleguide-skills` 或 `unit-test-guide-skills`，脚本会分别展开为 `code-styleguide-skills/styleguide-router`、`unit-test-guide-skills/unit-test-router` 再校验与写入；若你更希望显式声明，也可直接写上述带子路径的项（与展开结果相同，不会重复写入）。脚本将 `.cursor/skills-shared/<解析后路径>/SKILL.md` 写入 `AGENTS.md`，**不会**向 `.cursor/skills/` 创建软链。`planning-with-files-zh` 通常由 ext 的 `bootstrap.sh` 从本机 `~/.agents/skills/` 安装到项目，**不必**在此列表中重复（除非你将该技能整包放进 shared-skills 并统一命名）。
+**`cursor_skill_links` 说明**：逗号分隔；每一项解析后为 **shared-skills 根下的相对路径**，且该路径（最后一级目录）下须有 `SKILL.md`。普通技能包为单层名（如 `eng-practices`、`planning-with-files-ext`）。**聚合包**可写顶层目录名 `code-styleguide-skills` 或 `unit-test-guide-skills`，脚本会分别展开为 `code-styleguide-skills/styleguide-router`、`unit-test-guide-skills/unit-test-router` 再校验与写入；若你更希望显式声明，也可直接写上述带子路径的项（与展开结果相同，不会重复写入）。脚本将 `.cursor/shared-skills/<解析后路径>/SKILL.md` 写入 `AGENTS.md`，**不会**向 `.cursor/skills/` 创建软链。`planning-with-files-zh` 通常由 ext 的 `bootstrap.sh` 从本机 `~/.agents/skills/` 安装到项目，**不必**在此列表中重复（除非你将该技能整包放进 shared-skills 并统一命名）。
 
-**`AGENTS.md` 写入**：脚本执行结束前会自动写入或更新业务项目根 `AGENTS.md` 中的 `## Shared Skills` 节，内容为解析后各技能的 `.cursor/skills-shared/.../SKILL.md` 路径（可含 `/`）。`AGENTS.md` 应提交到 git，使团队所有成员和 CI 环境中的 Agent 在冷启动时即可正确路由，**无需再次运行配置脚本**。
+**`AGENTS.md` 写入**：脚本执行结束前会自动写入或更新业务项目根 `AGENTS.md` 中的 `## Shared Skills` 节，内容为解析后各技能的 `.cursor/shared-skills/.../SKILL.md` 路径（可含 `/`）。`AGENTS.md` 应提交到 git，使团队所有成员和 CI 环境中的 Agent 在冷启动时即可正确路由，**无需再次运行配置脚本**。
 
 ### 2. 一键执行（ submodule 场景）
 
-假设业务项目已按上文将共享库置于 `.cursor/skills-shared/`：
+假设业务项目已按上文将共享库置于 `.cursor/shared-skills/`：
 
 ```bash
 cd /path/to/your-project
 git submodule update --init --recursive
-bash .cursor/skills-shared/configure-from-readme.sh
+bash .cursor/shared-skills/configure-from-readme.sh
 ```
 
 若 shared-skills 在其他路径，可显式指定：
@@ -190,7 +190,7 @@ SKILLS_ROOT=/path/to/shared-skills bash /path/to/shared-skills/configure-from-re
 
 1. Cursor 加载 `AGENTS.md` → 读取 `## Shared Skills` 节中的路径列表
 2. 根据用户意图，按 `shared-skills/README.ai.md` §3 路由规则选择对应 skill
-3. 直接读取 `.cursor/skills-shared/<name>/SKILL.md` 执行
+3. 直接读取 `.cursor/shared-skills/<name>/SKILL.md` 执行
 
 若 `AGENTS.md` 中没有 Shared Skills 声明（首次接入或遗漏提交），Agent 会按 `README.ai.md` §0 冷启动流程主动检测并提议补全配置。
 
@@ -209,11 +209,11 @@ SKILLS_ROOT=/path/to/shared-skills bash /path/to/shared-skills/configure-from-re
 ```markdown
 ## Shared Skills
 
-- `.cursor/skills-shared/code-styleguide-skills/styleguide-router/SKILL.md`
-- `.cursor/skills-shared/eng-practices/SKILL.md`
-- （推荐）`.cursor/skills-shared/unit-test-guide-skills/unit-test-router/SKILL.md`
-- （可选，直达某端）`.cursor/skills-shared/unit-test-guide-skills/unit-test-android/SKILL.md` 等同目录下 `unit-test-ios`、`unit-test-wechat-miniprogram`
-- （可选）`.cursor/skills-shared/planning-with-files-ext/SKILL.md`（新项目落地文件规划与 hooks）
+- `.cursor/shared-skills/code-styleguide-skills/styleguide-router/SKILL.md`
+- `.cursor/shared-skills/eng-practices/SKILL.md`
+- （推荐）`.cursor/shared-skills/unit-test-guide-skills/unit-test-router/SKILL.md`
+- （可选，直达某端）`.cursor/shared-skills/unit-test-guide-skills/unit-test-android/SKILL.md` 等同目录下 `unit-test-ios`、`unit-test-wechat-miniprogram`
+- （可选）`.cursor/shared-skills/planning-with-files-ext/SKILL.md`（新项目落地文件规划与 hooks）
 
 使用约定：
 - 风格问题优先走 `styleguide-router`。

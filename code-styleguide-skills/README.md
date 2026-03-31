@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-18 15:44:59
-LatestChange: 初版：补充在各项目中接入与使用本仓库 skills 的说明。
+UpdatedAt: 2026-03-31 14:42:49
+LatestChange: 业务项目放置路径示例改为 .cursor/shared-skills/。
 -->
 
 ## 这是什么
@@ -24,7 +24,7 @@ LatestChange: 初版：补充在各项目中接入与使用本仓库 skills 的�
 
 适合团队希望**锁定版本**、按项目节奏升级。
 
-- **放置路径建议**：业务项目的 `.cursor/skills-shared/code-styleguide-skills/`
+- **放置路径建议**：业务项目的 `.cursor/shared-skills/code-styleguide-skills/`
 - **优点**：版本可控、升级明确；**缺点**：需要团队成员理解 submodule 的基本操作。
 
 ### 方式 B：Git subtree
