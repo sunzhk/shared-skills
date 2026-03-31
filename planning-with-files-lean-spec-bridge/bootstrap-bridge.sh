@@ -11,7 +11,7 @@ usage() {
 
 说明:
   - 默认 target_root 为当前目录。
-  - 将 shared-skills/planning-with-files-and-lean-spec-collaboration.md 复制到:
+  - 将 shared-skills/planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md 复制到:
       <target_root>/doc/plans/COORDINATION_LEANSPEC.md
   - 若 doc/plans 不存在，将创建该目录（建议仍先运行 planning-with-files-ext 的 bootstrap 以安装 hooks）。
 EOT
@@ -24,7 +24,7 @@ fi
 
 TARGET_ROOT="${1:-$(pwd)}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SRC_MD="${SCRIPT_DIR}/../planning-with-files-and-lean-spec-collaboration.md"
+SRC_MD="${SCRIPT_DIR}/planning-with-files-and-lean-spec-collaboration.md"
 DEST_DIR="${TARGET_ROOT}/doc/plans"
 DEST_MD="${DEST_DIR}/COORDINATION_LEANSPEC.md"
 
@@ -37,7 +37,7 @@ mkdir -p "${DEST_DIR}"
 
 NOW="$(date "+%Y-%m-%d %H:%M:%S")"
 {
-  echo "<!-- 由 bootstrap-bridge.sh 生成于 ${NOW}；源文件: shared-skills/planning-with-files-and-lean-spec-collaboration.md -->"
+  echo "<!-- 由 bootstrap-bridge.sh 生成于 ${NOW}；源文件: shared-skills/planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md -->"
   echo ""
   cat "${SRC_MD}"
 } > "${DEST_MD}"

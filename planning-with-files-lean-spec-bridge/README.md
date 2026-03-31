@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 10:31:37
-LatestChange: 补充 README 驱动配置：lean_spec_bridge_doc=1 + configure-from-readme.sh。
+UpdatedAt: 2026-03-31 14:35:34
+LatestChange: 协作文档与本目录同路径；README 内引用从 ../ 改为本目录文件名。
 -->
 
 # planning-with-files-lean-spec-bridge
@@ -22,4 +22,4 @@ LatestChange: 补充 README 驱动配置：lean_spec_bridge_doc=1 + configure-fr
 bash /path/to/planning-with-files-lean-spec-bridge/bootstrap-bridge.sh /path/to/target/repo
 ```
 
-权威协作文档仍维护在：`../planning-with-files-and-lean-spec-collaboration.md`。
+权威协作文档与本技能同目录：`planning-with-files-and-lean-spec-collaboration.md`。

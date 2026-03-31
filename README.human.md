@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 14:13:53
-LatestChange: 新增「LeanSpec 安装与初始化」专节（CLI/MCP 须自行完成）；README 驱动节改为引用该节。
+UpdatedAt: 2026-03-31 14:35:34
+LatestChange: 协作文档路径改为 planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md。
 -->
 
 # shared-skills（给人看的说明）
@@ -45,7 +45,7 @@ LatestChange: 新增「LeanSpec 安装与初始化」专节（CLI/MCP 须自行�
 - 用途：在 **ext 已落地** 的前提下，与 **LeanSpec** 做流程编排；由 Cursor 技能触发时代理按清单完成 Spec ↔ `doc/plans/` 的 `SpecRef` / `ExecutionPlan` 桥接，降低用户记忆成本。
 - 典型场景：用户说「三件套开新需求」「LeanSpec 和 planning 联动」；可选执行 `bootstrap-bridge.sh` 将协作文档复制到业务仓库 `doc/plans/COORDINATION_LEANSPEC.md`。
 - 入口 skill：`planning-with-files-lean-spec-bridge/SKILL.md`；脚本见同目录 `bootstrap-bridge.sh`。
-- 权威协作文档：`planning-with-files-and-lean-spec-collaboration.md`（脚本复制的是该文件快照，更新后需重跑脚本或手改副本）。
+- 权威协作文档：`planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md`（与桥接技能同目录；脚本复制的是该文件快照，更新后需重跑脚本或手改副本）。
 
 ## LeanSpec 安装与初始化（须自行完成）
 
