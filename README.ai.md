@@ -1,11 +1,99 @@
 <!--
-UpdatedAt: 2026-03-28 11:06:15
-LatestChange: 增加 planning-with-files-ext 入口与触发路由（与风格/评审/单测并列为工具类技能）。
+UpdatedAt: 2026-03-31 14:13:53
+LatestChange: 新增 §0.5：检测 LeanSpec CLI（command -v / npx）；未就绪时提示用户参阅 README.human.md 自行安装初始化。
 -->
 
 # shared-skills（给 AI 看的运行规则）
 
 本文档面向 Agent，用于保证技能触发稳定、路由一致、输出可执行。
+
+## 0. 冷启动自动配置（新项目首次接入）
+
+当 Agent 在一个**尚未配置 shared-skills 的项目**中工作时，执行以下检测与配置流程，**无需等待用户明确指令**：
+
+### 0.1 触发条件（满足任一即触发）
+
+- 用户提及「配置 shared-skills」「接入共享技能」「初始化项目」等
+- Agent 发现 `.cursor/skills-shared/` 目录存在但 `AGENTS.md` 中没有 shared-skills 路径声明
+- 用户要求使用某个 shared-skills 内的技能，但当前项目尚未配置
+
+### 0.2 自动配置流程
+
+**步骤 1：检测 submodule 状态**
+
+```bash
+ls .cursor/skills-shared/configure-from-readme.sh
+```
+
+- 若文件存在 → 继续步骤 2
+- 若目录不存在或为空 → 提示用户先初始化 submodule：
+  ```bash
+  git submodule update --init --recursive
+  ```
+  初始化后继续步骤 2
+
+**步骤 2：业务 README 中的配置块（可选）**
+
+- `configure-from-readme.sh` 会**先**读取 `.cursor/skills-shared/README.md`（即 shared-skills 根 README）中的默认 `<!-- shared-skills-config -->`（已含 `cursor_skill_links`），**再**用业务项目根 `README.md` 中的同名块覆盖。
+- 若业务项目无 `README.md`、或 README 中无该块 → **无需补写**，直接执行步骤 3 即可得到完整 AGENTS.md 与 bootstrap。
+- 仅当需要关闭 `lean_spec_bridge_doc`、调整 `cursor_skill_links` 等时，再在业务 `README.md` 中加入配置块覆盖对应键。
+
+**步骤 3：执行 configure-from-readme.sh**
+
+```bash
+cd <项目根>
+bash .cursor/skills-shared/configure-from-readme.sh
+```
+
+该脚本会：
+- 写入 `.cursor/rules/`、hooks、`doc/plans/` 等（按配置块决定）
+- **解析** `cursor_skill_links`：`code-styleguide-skills` → `code-styleguide-skills/styleguide-router`，`unit-test-guide-skills` → `unit-test-guide-skills/unit-test-router`；再校验各解析后路径在 shared-skills 中存在且含 `SKILL.md`（不创建 `.cursor/skills` 软链）
+- **写入或追加 `AGENTS.md`**（将 `.cursor/skills-shared/<解析后路径>/SKILL.md` 写入，路径可含 `/`，使 Agent 后续能自动路由）
+
+**步骤 4：验证**
+
+检查 `AGENTS.md` 中是否已包含 skill 路径声明，向用户确认配置完成。
+
+### 0.3 AGENTS.md 写入规范
+
+`configure-from-readme.sh` 写入 `AGENTS.md` 的格式：
+
+```markdown
+## Shared Skills（由 configure-from-readme.sh 生成，勿手动删除此行）
+
+- `.cursor/skills-shared/planning-with-files-ext/SKILL.md`
+- `.cursor/skills-shared/planning-with-files-lean-spec-bridge/SKILL.md`
+- `.cursor/skills-shared/eng-practices/SKILL.md`
+- `.cursor/skills-shared/code-styleguide-skills/styleguide-router/SKILL.md`
+- `.cursor/skills-shared/unit-test-guide-skills/unit-test-router/SKILL.md`
+```
+
+- 若 `AGENTS.md` 已存在且包含 `## Shared Skills` 节 → 更新该节内容，不影响其他节
+- 若 `AGENTS.md` 不存在 → 新建并写入
+- 若 `AGENTS.md` 已存在但无 `## Shared Skills` 节 → 在文件末尾追加
+
+### 0.4 冷启动后的路由
+
+配置完成后，Agent 在后续会话中：
+1. 读取 `AGENTS.md` → 获知 skill 路径
+2. 按 §3 路由规则 → 选择正确 skill
+3. 直接读取 `.cursor/skills-shared/<skill>/SKILL.md` → 执行
+
+### 0.5 LeanSpec CLI 检测（与桥接技能相关）
+
+`configure-from-readme.sh` **不包含** LeanSpec 的安装与 `init`。当满足以下**任一**条件时，Agent **应先检测** LeanSpec 是否可用，**不可默认用户已安装**：
+
+- 刚完成 §0 冷启动且 `AGENTS.md` 中声明了 `planning-with-files-lean-spec-bridge`（默认配置通常会包含）
+- 用户意图涉及 **LeanSpec、三件套、specs/、`SpecRef`、规格与 doc/plans 联动**
+- 准备读取并执行 `planning-with-files-lean-spec-bridge/SKILL.md` 中的 CLI 相关步骤
+
+**检测方式**（在项目根或当前工作目录的 shell 中执行，按顺序）：
+
+1. `command -v lean-spec`（或 `which lean-spec`）→ 若找到可执行文件，视为 **CLI 已可用**。
+2. 若未找到：执行 `command -v npx`（并确认 `node` 可用）。若 **npx 可用**，可告知用户**无需全局安装**即可使用 `npx lean-spec …`（如 `npx lean-spec init`），并说明首次运行可能需要网络下载。
+3. 若 **node / npx 均不可用**：**必须明确提示用户**先安装 Node.js（LTS），再按 **`README.human.md` →「LeanSpec 安装与初始化（须自行完成）」** 与官方指南 [LeanSpec 中文指南](https://www.lean-spec.dev/zh-Hans/docs/guide/) 完成 CLI 或手工 `specs/` 结构；**不要**假装已执行过 `lean-spec init`。
+
+**未就绪时的输出要求**：简要说明「shared-skills 一键配置未包含 LeanSpec 安装」、给出上述文档锚点与官方链接、列出用户可选的下一步（全局安装 / `npx` / 仅手工维护 `specs/`）。若用户暂不安装 CLI，可仍按桥接技能中「手工建立最小 spec 文件」路径协助，但须说明与完整 CLI 工作流的差异。
 
 ## 1. 目标
 
@@ -21,6 +109,8 @@ LatestChange: 增加 planning-with-files-ext 入口与触发路由（与风格/�
 - 单元测试规范（主控）：`unit-test-guide-skills/unit-test-router/SKILL.md`
 - 单元测试三端子技能：`unit-test-guide-skills/unit-test-android/SKILL.md`、`unit-test-ios`、`unit-test-wechat-miniprogram`
 - 文件规划落地：`planning-with-files-ext/SKILL.md`（执行 `bootstrap.sh`、与 `planning-with-files-zh` 方法论对齐）
+- 三件套桥接（LeanSpec ↔ `doc/plans`）：`planning-with-files-lean-spec-bridge/SKILL.md`
+- **README 一键配置**：仓库根 `configure-from-readme.sh`（默认块在 shared-skills `README.md`，业务 README 可选覆盖；详见 `README.human.md`）
 
 需要深读时可读取：
 
@@ -70,14 +160,32 @@ LatestChange: 增加 planning-with-files-ext 入口与触发路由（与风格/�
 
 **执行要点**：读取 `planning-with-files-ext/SKILL.md`，按其中路径对目标项目根目录运行 `bootstrap.sh`；若 `hooks.json` 已存在且与模板不一致，脚本会 **exit 1** 并打印 diff，需人工合并后再试。
 
-### 3.5 组合调用
+### 3.5 路由到 `configure-from-readme.sh`（README 驱动落地）
+
+当用户意图是以下任一项：
+
+- 通过 **业务项目 README** 声明 shared-skills 并**一键完成**仓库内配置
+- 「按 README 配置 skills」「README 里 shared-skills-config」「自动装 planning hooks / 写入 AGENTS.md 技能列表」
+- 「初始化这个项目的 shared-skills」「帮我配好技能入口」（→ 触发 §0 冷启动流程）
+
+**执行要点**：
+
+1. 默认配置（含 `cursor_skill_links`）在 **shared-skills 仓库根 `README.md`** 的 `<!-- shared-skills-config -->`；业务项目 README 中的块**可选**，用于覆盖。无业务块时直接执行即可。
+2. 在业务项目根执行（submodule 典型路径示例）：
+   - `bash .cursor/skills-shared/configure-from-readme.sh`
+   - 或 `SKILLS_ROOT=<shared-skills 根> bash <shared-skills>/configure-from-readme.sh <项目根>`
+3. 脚本会按固定顺序调用 `planning-with-files-ext/bootstrap.sh`、可选 `bootstrap-bridge.sh`、**解析并校验** `cursor_skill_links`、**写入 `AGENTS.md`**；失败时按脚本 stderr 处理（如 `hooks.json` 冲突、技能目录不存在或缺少 `SKILL.md`）。
+
+**不要**在未读 shared-skills 默认块与业务 README 合并结果的情况下猜测启用项；有效配置 = 默认块 ∪ 业务块覆盖。
+
+### 3.6 组合调用
 
 同时涉及风格与评审流程时：
 
 1. 先用 `eng-practices` 判断评审结论与优先级（Required/Nit/Optional）
 2. 再用 `styleguide-router` 给出语言级具体修改建议
 
-### 3.6 路由示例矩阵
+### 3.7 路由示例矩阵
 
 | 用户问法（示例） | 路由 | 执行要点 |
 | --- | --- | --- |
@@ -93,6 +201,10 @@ LatestChange: 增加 planning-with-files-ext 入口与触发路由（与风格/�
 | “iOS 单测异步怎么写规范” | `unit-test-router` 或 `unit-test-ios` | 优先 Apple 官方 XCTest/Swift Testing 规则。 |
 | “微信小程序组件单测怎么做” | `unit-test-router` → `unit-test-wechat-miniprogram` | 以微信开放文档和 miniprogram-simulate 为准。 |
 | “给新项目装 planning-with-files / hooks” | `planning-with-files-ext` | 读 `SKILL.md` 后 `bootstrap.sh`；注意 `hooks.json` 冲突时中断。 |
+| “README 里配好 shared-skills，一键落地到仓库” | `configure-from-readme.sh` | 先核对 README 配置块，再执行脚本；见 `README.human.md`。 |
+| “LeanSpec 和 doc/plans 联动开需求” | `planning-with-files-lean-spec-bridge` | 先确保 ext 已落地；按 §0.5 检测 LeanSpec CLI / npx，未就绪则提示用户参阅 `README.human.md`；再按技能清单建 SpecRef / ExecutionPlan。 |
+| “帮我配置 shared-skills / 初始化技能入口” | §0 冷启动流程 | 检测 submodule → 检测 README 配置块 → 执行脚本 → 写 AGENTS.md。 |
+| “这个项目还没配置 shared-skills” | §0 冷启动流程 | 同上，Agent 可主动检测并提议执行。 |
 
 ## 4. 冲突优先级
 

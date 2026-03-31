@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-30 17:21:57
-LatestChange: bootstrap 默认检查并尝试安装 planning-with-files-zh 到目标仓库 .cursor/skills/；补充 planning-paths.sh 落地产物与参数说明。
+UpdatedAt: 2026-03-31 10:31:37
+LatestChange: 补充：业务项目可通过 README 中 shared-skills-config + 上级仓库 configure-from-readme.sh 一键调用本 bootstrap。
 -->
 
 # planning-with-files 项目模板
@@ -23,6 +23,12 @@ LatestChange: bootstrap 默认检查并尝试安装 planning-with-files-zh 到�
 - 安装后，由 Agent 在「新项目落地 planning」类需求下读取 `SKILL.md` 并执行其中的 bootstrap 命令；也可在本地手动执行脚本（见下）。
 
 ## 使用方式（手动）
+
+### 多项目：README 声明 + `configure-from-readme.sh`（推荐）
+
+业务项目根 `README.md` 加入 `<!-- shared-skills-config` … `planning_with_files_ext=1` … `-->`，并执行 shared-skills 根目录的 `configure-from-readme.sh`（典型：`bash .cursor/skills-shared/configure-from-readme.sh`）。详见上级目录 `README.human.md`「README 驱动一键配置」。
+
+### 单项目：直接跑 `bootstrap.sh`
 
 1. 将本目录放在任意可引用路径（例如本 monorepo 的 `shared-skills/planning-with-files-ext/`，或目标项目下的 `doc/plans/template/`）。
 2. 在**目标项目根目录**执行：

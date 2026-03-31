@@ -1,9 +1,17 @@
 <!--
-UpdatedAt: 2026-03-28 11:06:15
-LatestChange: 增加 planning-with-files-ext 导航入口（文件规划 + Cursor hooks 一键落地）。
+UpdatedAt: 2026-03-31 11:26:41
+LatestChange: 在本文档内预置 shared-skills-config 默认块（含 cursor_skill_links）；configure-from-readme.sh 先读此块再合并业务 README，空项目可不写配置。
 -->
 
 # shared-skills 总纲
+
+<!-- shared-skills-config
+# 以下为仓库级默认：configure-from-readme.sh 会先应用本块，再用业务项目 README 中同名键覆盖。业务可整段不写 cursor_skill_links。
+planning_with_files_ext=1
+planning_with_files_ext_no_install_pwfz=0
+lean_spec_bridge_doc=1
+cursor_skill_links=planning-with-files-ext,planning-with-files-lean-spec-bridge,eng-practices,code-styleguide-skills,unit-test-guide-skills
+-->
 
 本目录用于存放可跨项目复用的 Cursor Skills。  
 为避免“同一文档同时服务人和 AI”导致的冗长与歧义，采用三文档结构：
@@ -29,7 +37,9 @@ LatestChange: 增加 planning-with-files-ext 导航入口（文件规划 + Curso
 ## 快速链接
 
 - 人类使用手册（含完整 submodule 接入与更新）：`README.human.md`
-- AI 运行规则（触发、路由、优先级）：`README.ai.md`
+- **业务项目 README 一键落地**：`configure-from-readme.sh`（约定见 `README.human.md`「README 驱动一键配置」）
+  - 执行后自动写入业务项目 `AGENTS.md`，Agent 冷启动时即可路由，无需额外手工配置
+- AI 运行规则（触发、路由、优先级、**冷启动自动配置流程**）：`README.ai.md`
 - 风格技能说明：`code-styleguide-skills/README.md`
 - 评审技能入口：`eng-practices/SKILL.md`
 - 单元测试规范（主控 router）：`unit-test-guide-skills/unit-test-router/SKILL.md`（说明见 `unit-test-guide-skills/README.md`）
@@ -50,6 +60,10 @@ LatestChange: 增加 planning-with-files-ext 导航入口（文件规划 + Curso
 - `planning-with-files-ext/`
   - 入口：`planning-with-files-ext/SKILL.md`
   - 包说明：`planning-with-files-ext/README.md`（含 `bootstrap.sh` 一键写入 `.cursor` 与 `doc/plans`）
+- `planning-with-files-lean-spec-bridge/`
+  - 入口：`planning-with-files-lean-spec-bridge/SKILL.md`（LeanSpec ↔ `doc/plans` 编排）
+  - 脚本：`planning-with-files-lean-spec-bridge/bootstrap-bridge.sh`
+- `configure-from-readme.sh`（仓库根）：先读**本文档**内 `<!-- shared-skills-config -->` 默认块（含预置 `cursor_skill_links`），再合并业务项目 `README.md` 中的同名块（可省略）；自动执行 bootstrap、**解析并校验**技能路径、**写入业务项目 `AGENTS.md`**（路径指向 `.cursor/skills-shared/...`）
 
 ## 路由说明
 
