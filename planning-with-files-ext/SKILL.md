@@ -1,17 +1,23 @@
 ---
 name: planning-with-files-ext
 description: >
-  为新项目一键落地基于文件的 planning-with-files 工作流：生成 Cursor 规则、hooks 与
-  doc/plans 辅助脚本；支持路径 id（父/子至多两层）、SUB_ACTIVE 与 effective_dir、多计划目录与
-  ACTIVE 指针、task_plan/findings/progress 三文件及按需 execution_brief。在用户要求初始化规划工具、
-  安装 planning hooks、bootstrap 文件规划、从模板创建计划目录时使用。触发词：落地 planning、安装 hooks、
-  bootstrap、文件规划模板、多计划切换、子计划、planning-with-files。
+  ⚠️ 已废弃：本技能已合并至 lean-spec-planning-with-files-bridge。请使用新技能。
+  路径：shared-skills/lean-spec-planning-with-files-bridge/SKILL.md
 ---
 
 <!--
-UpdatedAt: 2026-03-31 14:42:49
-LatestChange: configure-from-readme 示例路径改为 .cursor/shared-skills。
+UpdatedAt: 2026-04-01 15:08:55
+LatestChange: 已废弃——合并至 lean-spec-planning-with-files-bridge（一体化双轨协作技能）。
 -->
+
+> **⚠️ 已废弃**：本技能已合并至 **`lean-spec-planning-with-files-bridge`**。
+> 新路径：`shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`
+> 请使用新目录中的 `bootstrap.sh` 代替本目录的 `bootstrap.sh`。
+
+---
+
+<!-- 以下为历史内容，仅供参考 -->
+
 
 # planning-with-files-ext（Cursor 工程落地）
 

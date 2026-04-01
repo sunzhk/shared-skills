@@ -2,7 +2,8 @@
 # 读取 <!-- shared-skills-config ... -->：先应用 shared-skills 本仓库 README.md 中的默认块（含预置 cursor_skill_links），
 # 再用业务项目根 README.md 中的块覆盖同名键（业务可整段省略，实现「只给 Agent 仓库地址、clone 后一条命令」）。
 # 业务项目可无 README.md：此时仅使用仓库默认。若两处均无配置块则报错。
-# 依次执行 planning-with-files-ext / lean-spec 桥接 / 解析并校验 cursor_skill_links → 写入 AGENTS.md（## Shared Skills；路径前缀默认 .cursor/shared-skills）。
+# 依次执行 lean-spec-planning-with-files-bridge（一体化双轨，新键 lean_spec_planning）/ 向后兼容旧键 planning_with_files_ext + lean_spec_bridge_doc /
+# 解析并校验 cursor_skill_links → 写入 AGENTS.md（## Shared Skills；路径前缀默认 .cursor/shared-skills）。
 # 聚合包 code-styleguide-skills、unit-test-guide-skills 会解析为各自 router 子路径。不创建 .cursor/skills 软链。
 # 本脚本须保留在 shared-skills 仓库根目录，以便解析 SKILLS_ROOT。
 
@@ -126,6 +127,8 @@ expand_cursor_skill_links_csv() {
 planning_with_files_ext=""
 planning_with_files_ext_no_install_pwfz=""
 lean_spec_bridge_doc=""
+lean_spec_planning=""
+lean_spec_planning_no_install_pwfz=""
 cursor_skill_links=""
 
 apply_config_block() {
@@ -146,6 +149,8 @@ apply_config_block() {
       planning_with_files_ext) planning_with_files_ext="${val}" ;;
       planning_with_files_ext_no_install_pwfz) planning_with_files_ext_no_install_pwfz="${val}" ;;
       lean_spec_bridge_doc) lean_spec_bridge_doc="${val}" ;;
+      lean_spec_planning) lean_spec_planning="${val}" ;;
+      lean_spec_planning_no_install_pwfz) lean_spec_planning_no_install_pwfz="${val}" ;;
       cursor_skill_links) cursor_skill_links="${val}" ;;
       *)
         echo "[shared-skills] 警告: [${src_label}] 未知配置项（已忽略）: ${key}" >&2
@@ -186,33 +191,57 @@ if [[ -n "$(trim "${cursor_skill_links}")" ]]; then
   cursor_skill_links_resolved="$(expand_cursor_skill_links_csv "${cursor_skill_links}")"
 fi
 
+# ── 新合并技能（lean_spec_planning）优先；向后兼容旧键（planning_with_files_ext + lean_spec_bridge_doc） ──
+MERGED_BOOT="${SKILLS_ROOT}/lean-spec-planning-with-files-bridge/bootstrap.sh"
 EXT_BOOT="${SKILLS_ROOT}/planning-with-files-ext/bootstrap.sh"
 BRIDGE_BOOT="${SKILLS_ROOT}/planning-with-files-lean-spec-bridge/bootstrap-bridge.sh"
 
-if is_true "${planning_with_files_ext}"; then
-  if [[ ! -f "${EXT_BOOT}" ]]; then
-    echo "[shared-skills] 错误: 找不到 planning-with-files-ext/bootstrap.sh: ${EXT_BOOT}" >&2
+if is_true "${lean_spec_planning}"; then
+  # 新键：使用合并后的一体化双轨 bootstrap
+  if [[ ! -f "${MERGED_BOOT}" ]]; then
+    echo "[shared-skills] 错误: 找不到 lean-spec-planning-with-files-bridge/bootstrap.sh: ${MERGED_BOOT}" >&2
     exit 1
   fi
-  ext_args=(bash "${EXT_BOOT}" "${TARGET_ROOT}")
-  if is_true "${planning_with_files_ext_no_install_pwfz}"; then
-    ext_args+=(--no-install-planning-with-files-zh)
+  merged_args=(bash "${MERGED_BOOT}" "${TARGET_ROOT}")
+  if is_true "${lean_spec_planning_no_install_pwfz}"; then
+    merged_args+=(--no-install-planning-with-files-zh)
   fi
-  echo "[shared-skills] 执行: planning-with-files-ext/bootstrap.sh" >&2
-  "${ext_args[@]}"
-else
-  echo "[shared-skills] 跳过 planning_with_files_ext（未启用或为假）。" >&2
-fi
+  echo "[shared-skills] 执行: lean-spec-planning-with-files-bridge/bootstrap.sh（一体化双轨）" >&2
+  "${merged_args[@]}"
+elif is_true "${planning_with_files_ext}"; then
+  # 向后兼容：旧键 planning_with_files_ext
+  echo "[shared-skills] 提示: 检测到旧键 planning_with_files_ext；建议迁移至 lean_spec_planning=1（一体化双轨技能）。" >&2
+  if [[ -f "${MERGED_BOOT}" ]]; then
+    # 优先使用合并后的 bootstrap（功能向上兼容）
+    merged_args=(bash "${MERGED_BOOT}" "${TARGET_ROOT}")
+    if is_true "${planning_with_files_ext_no_install_pwfz}"; then
+      merged_args+=(--no-install-planning-with-files-zh)
+    fi
+    echo "[shared-skills] 执行: lean-spec-planning-with-files-bridge/bootstrap.sh（兼容旧键）" >&2
+    "${merged_args[@]}"
+  elif [[ -f "${EXT_BOOT}" ]]; then
+    ext_args=(bash "${EXT_BOOT}" "${TARGET_ROOT}")
+    if is_true "${planning_with_files_ext_no_install_pwfz}"; then
+      ext_args+=(--no-install-planning-with-files-zh)
+    fi
+    echo "[shared-skills] 执行: planning-with-files-ext/bootstrap.sh（旧路径）" >&2
+    "${ext_args[@]}"
+  else
+    echo "[shared-skills] 错误: 找不到 bootstrap.sh（新旧路径均不存在）" >&2
+    exit 1
+  fi
 
-if is_true "${lean_spec_bridge_doc}"; then
-  if [[ ! -f "${BRIDGE_BOOT}" ]]; then
-    echo "[shared-skills] 错误: 找不到 bootstrap-bridge.sh: ${BRIDGE_BOOT}" >&2
-    exit 1
+  # 向后兼容：旧键 lean_spec_bridge_doc（仅在新 bootstrap 未覆盖时单独执行）
+  if is_true "${lean_spec_bridge_doc}" && [[ ! -f "${MERGED_BOOT}" ]]; then
+    if [[ ! -f "${BRIDGE_BOOT}" ]]; then
+      echo "[shared-skills] 错误: 找不到 bootstrap-bridge.sh: ${BRIDGE_BOOT}" >&2
+      exit 1
+    fi
+    echo "[shared-skills] 执行: planning-with-files-lean-spec-bridge/bootstrap-bridge.sh（旧路径）" >&2
+    bash "${BRIDGE_BOOT}" "${TARGET_ROOT}"
   fi
-  echo "[shared-skills] 执行: planning-with-files-lean-spec-bridge/bootstrap-bridge.sh" >&2
-  bash "${BRIDGE_BOOT}" "${TARGET_ROOT}"
 else
-  echo "[shared-skills] 跳过 lean_spec_bridge_doc（未启用或为假）。" >&2
+  echo "[shared-skills] 跳过 lean_spec_planning / planning_with_files_ext（未启用或为假）。" >&2
 fi
 
 if [[ -n "$(trim "${cursor_skill_links_resolved}")" ]]; then

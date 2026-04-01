@@ -1,7 +1,15 @@
 <!--
-UpdatedAt: 2026-03-31 14:42:49
-LatestChange: configure-from-readme 示例路径改为 .cursor/shared-skills。
+UpdatedAt: 2026-04-01 15:08:55
+LatestChange: 已废弃——合并至 lean-spec-planning-with-files-bridge（一体化双轨协作技能）。
 -->
+
+> **⚠️ 已废弃**：本目录已合并至 **`lean-spec-planning-with-files-bridge`**。
+> 新路径：`shared-skills/lean-spec-planning-with-files-bridge/`
+> 请使用新目录中的 `bootstrap.sh`、`SKILL.md`、`README.md`。
+
+---
+
+<!-- 以下为历史内容，仅供参考 -->
 
 # planning-with-files 项目模板
 

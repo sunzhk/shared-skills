@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-03-31 16:01:57
-LatestChange: lean-spec 桥接小节改用标准术语「双轨协作」，与「三件套=三文件」区分。
+UpdatedAt: 2026-04-01 15:08:55
+LatestChange: planning-with-files-ext 与 planning-with-files-lean-spec-bridge 合并为 lean-spec-planning-with-files-bridge；更新技能描述、配置键与引用路径。
 -->
 
 # shared-skills（给人看的说明）
@@ -34,22 +34,24 @@ LatestChange: lean-spec 桥接小节改用标准术语「双轨协作」，与�
 - 子 skill：`unit-test-android`、`unit-test-ios`、`unit-test-wechat-miniprogram`。
 - 规则基线：以官方文档为先（Android Developers、Apple Developer、微信开放文档）。
 
-### `planning-with-files-ext/`
+### `lean-spec-planning-with-files-bridge/`（一体化双轨协作）
 
-- 用途：在新仓库里**一键落地**基于文件的 planning-with-files 工作流（Cursor rules、hooks、`doc/plans` 脚本）；与 `planning-with-files-zh` 方法论对齐，侧重工程化落地。
-- 典型场景：初始化规划目录、安装 planning hooks、多计划 `ACTIVE` 指针、避免覆盖已有 `hooks.json`（冲突时中断并 diff）。
-- 入口 skill：`planning-with-files-ext/SKILL.md`；人类操作说明见同目录 `README.md`（`bootstrap.sh`）。
+- 用途：**强制双轨模式**——将 LeanSpec（`specs/` 规格轨）与 planning-with-files（`doc/plans/` 执行轨）合为一体。一键落地 Cursor 规则、hooks（含 **SpecRef 感知**）、计划脚本与协作文档；与 `planning-with-files-zh` 方法论对齐。
+- 典型场景：初始化规划目录并同时建立规格轨、安装 planning hooks、多计划 `ACTIVE` 指针、**双轨协作**（`specs/` + `doc/plans/` + `SpecRef`/`ExecutionPlan`）。口令建议用 **「按双轨」**、**「双轨开需求」** 或技能全名。
+- 入口 skill：`lean-spec-planning-with-files-bridge/SKILL.md`；人类操作说明见同目录 `README.md`（`bootstrap.sh`）。
+- 权威协作文档：`lean-spec-planning-with-files-bridge/planning-with-files-and-lean-spec-collaboration.md`（bootstrap 复制到 `doc/plans/COORDINATION_LEANSPEC.md`）。
 
-### `planning-with-files-lean-spec-bridge/`
+### `planning-with-files-ext/`（⚠️ 已废弃）
 
-- 用途：在 **ext 已落地** 的前提下，与 **LeanSpec** 做流程编排；由 Cursor 技能触发时代理按清单完成 Spec ↔ `doc/plans/` 的 `SpecRef` / `ExecutionPlan` 桥接，降低用户记忆成本。
-- 典型场景：用户要 **双轨协作**（`specs/` + `doc/plans/` + `SpecRef`/`ExecutionPlan`）；口令建议用 **「按双轨」**、**「双轨开需求」** 或 **桥接技能全名**。口语「三件套」在 planning-with-files 里多指 **三文件**，不宜再用来指本桥接（详见桥接 `SKILL.md`「术语：双轨协作」）。可选执行 `bootstrap-bridge.sh` 将协作文档复制到业务仓库 `doc/plans/COORDINATION_LEANSPEC.md`。
-- 入口 skill：`planning-with-files-lean-spec-bridge/SKILL.md`；脚本见同目录 `bootstrap-bridge.sh`。
-- 权威协作文档：`planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md`（与桥接技能同目录；脚本复制的是该文件快照，更新后需重跑脚本或手改副本）。
+- 已合并至 `lean-spec-planning-with-files-bridge/`。旧目录保留历史内容供参考。
+
+### `planning-with-files-lean-spec-bridge/`（⚠️ 已废弃）
+
+- 已合并至 `lean-spec-planning-with-files-bridge/`。旧目录保留历史内容供参考。
 
 ## LeanSpec 安装与初始化（须自行完成）
 
-`configure-from-readme.sh` **不会**安装 LeanSpec CLI、**不会**执行 `lean-spec init` / `npx lean-spec init`，也**不会**写入 Cursor 的 LeanSpec MCP 配置。默认流程里与 LeanSpec 相关的仅是：在启用 `lean_spec_bridge_doc` 时，将协作文档复制到业务仓库 `doc/plans/COORDINATION_LEANSPEC.md`，便于人类与 Agent 查阅「Spec ↔ `doc/plans/`」如何配合。
+`configure-from-readme.sh` **不会**安装 LeanSpec CLI、**不会**执行 `lean-spec init` / `npx lean-spec init`，也**不会**写入 Cursor 的 LeanSpec MCP 配置。默认流程里与 LeanSpec 相关的仅是：在启用 `lean_spec_planning` 时，bootstrap 会将协作文档复制到业务仓库 `doc/plans/COORDINATION_LEANSPEC.md`，便于人类与 Agent 查阅「Spec ↔ `doc/plans/`」如何配合。
 
 若要用 LeanSpec 管理 `specs/`、看板或官方 Web UI，请在本机或 CI 中**另行**按官方文档完成安装与初始化：
 
@@ -128,7 +130,7 @@ git submodule update --remote --recursive
   - `.cursor/shared-skills/code-styleguide-skills/`
   - `.cursor/shared-skills/eng-practices/`
   - `.cursor/shared-skills/unit-test-guide-skills/`
-  - `.cursor/shared-skills/planning-with-files-ext/`
+  - `.cursor/shared-skills/lean-spec-planning-with-files-bridge/`
 
 ## README 驱动一键配置（推荐：落仓库规则与技能入口）
 
@@ -140,25 +142,25 @@ git submodule update --remote --recursive
 
 ```markdown
 <!-- shared-skills-config
-# 文件规划：写入 .cursor/rules、hooks、doc/plans 脚本等（见 planning-with-files-ext）
-planning_with_files_ext=1
+# 一体化双轨协作：写入 .cursor/rules、hooks（含 SpecRef 感知）、doc/plans 脚本与协作文档
+lean_spec_planning=1
 # 若为 1，则等价于 bootstrap 传入 --no-install-planning-with-files-zh
-planning_with_files_ext_no_install_pwfz=0
-# 将 LeanSpec↔planning 双轨协作文档复制到 doc/plans/COORDINATION_LEANSPEC.md
-lean_spec_bridge_doc=1
+lean_spec_planning_no_install_pwfz=0
 # 声明要写入 AGENTS.md 的技能（相对 shared-skills 根的路径，该路径下须有 SKILL.md；不创建 .cursor/skills 软链）
 # 聚合包 code-styleguide-skills、unit-test-guide-skills 可写顶层目录名，脚本会自动改为 …/styleguide-router、…/unit-test-router
-cursor_skill_links=planning-with-files-ext,planning-with-files-lean-spec-bridge,eng-practices,code-styleguide-skills,unit-test-guide-skills
+cursor_skill_links=lean-spec-planning-with-files-bridge,eng-practices,code-styleguide-skills,unit-test-guide-skills
 -->
 ```
 
+**向后兼容**：旧键 `planning_with_files_ext=1` 与 `lean_spec_bridge_doc=1` 仍可识别，脚本会优先使用合并后的 bootstrap；建议逐步迁移到 `lean_spec_planning=1`。
+
 **布尔值**：`1` / `true` / `yes` / `on` 为启用，其余为不启用。
 
-**执行顺序**（脚本固定）：合并配置（shared-skills 根 README 默认块 → 业务 README 覆盖）→ `planning_with_files_ext` → `lean_spec_bridge_doc` → **解析** `cursor_skill_links`（含聚合包名展开）→ 校验 `SKILL.md` → 写入 `AGENTS.md`。
+**执行顺序**（脚本固定）：合并配置（shared-skills 根 README 默认块 → 业务 README 覆盖）→ `lean_spec_planning`（或向后兼容 `planning_with_files_ext` + `lean_spec_bridge_doc`）→ **解析** `cursor_skill_links`（含聚合包名展开）→ 校验 `SKILL.md` → 写入 `AGENTS.md`。
 
 **不在此脚本内**：**LeanSpec** 的 CLI 安装、`lean-spec init` / `npx lean-spec init`、MCP 配置等——详见上文 **「LeanSpec 安装与初始化（须自行完成）」**；需要时可后续在配置块增加新键并在 `configure-from-readme.sh` 中实现自动化。
 
-**`cursor_skill_links` 说明**：逗号分隔；每一项解析后为 **shared-skills 根下的相对路径**，且该路径（最后一级目录）下须有 `SKILL.md`。普通技能包为单层名（如 `eng-practices`、`planning-with-files-ext`）。**聚合包**可写顶层目录名 `code-styleguide-skills` 或 `unit-test-guide-skills`，脚本会分别展开为 `code-styleguide-skills/styleguide-router`、`unit-test-guide-skills/unit-test-router` 再校验与写入；若你更希望显式声明，也可直接写上述带子路径的项（与展开结果相同，不会重复写入）。脚本将 `.cursor/shared-skills/<解析后路径>/SKILL.md` 写入 `AGENTS.md`，**不会**向 `.cursor/skills/` 创建软链。`planning-with-files-zh` 通常由 ext 的 `bootstrap.sh` 从本机 `~/.agents/skills/` 安装到项目，**不必**在此列表中重复（除非你将该技能整包放进 shared-skills 并统一命名）。
+**`cursor_skill_links` 说明**：逗号分隔；每一项解析后为 **shared-skills 根下的相对路径**，且该路径（最后一级目录）下须有 `SKILL.md`。普通技能包为单层名（如 `eng-practices`、`lean-spec-planning-with-files-bridge`）。**聚合包**可写顶层目录名 `code-styleguide-skills` 或 `unit-test-guide-skills`，脚本会分别展开为 `code-styleguide-skills/styleguide-router`、`unit-test-guide-skills/unit-test-router` 再校验与写入；若你更希望显式声明，也可直接写上述带子路径的项（与展开结果相同，不会重复写入）。脚本将 `.cursor/shared-skills/<解析后路径>/SKILL.md` 写入 `AGENTS.md`，**不会**向 `.cursor/skills/` 创建软链。`planning-with-files-zh` 通常由 bootstrap 从本机 `~/.agents/skills/` 安装到项目，**不必**在此列表中重复。
 
 **`AGENTS.md` 写入**：脚本执行结束前会自动写入或更新业务项目根 `AGENTS.md` 中的 `## Shared Skills` 节，内容为解析后各技能的 `.cursor/shared-skills/.../SKILL.md` 路径（可含 `/`）。`AGENTS.md` 应提交到 git，使团队所有成员和 CI 环境中的 Agent 在冷启动时即可正确路由，**无需再次运行配置脚本**。
 
@@ -209,23 +211,23 @@ SKILLS_ROOT=/path/to/shared-skills bash /path/to/shared-skills/configure-from-re
 ```markdown
 ## Shared Skills
 
+- `.cursor/shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`（一体化双轨协作：文件规划 + LeanSpec 规格轨）
 - `.cursor/shared-skills/code-styleguide-skills/styleguide-router/SKILL.md`
 - `.cursor/shared-skills/eng-practices/SKILL.md`
 - （推荐）`.cursor/shared-skills/unit-test-guide-skills/unit-test-router/SKILL.md`
 - （可选，直达某端）`.cursor/shared-skills/unit-test-guide-skills/unit-test-android/SKILL.md` 等同目录下 `unit-test-ios`、`unit-test-wechat-miniprogram`
-- （可选）`.cursor/shared-skills/planning-with-files-ext/SKILL.md`（新项目落地文件规划与 hooks）
 
 使用约定：
 - 风格问题优先走 `styleguide-router`。
 - 评审流程、评论策略、冲突处理优先走 `eng-practices`。
 - 单元测试规范与补测策略优先走 `unit-test-router`；若平台已明确，可直达对应 `unit-test-*` 子 skill。
-- 需要在新仓库**安装文件规划与 hooks** 时走 `planning-with-files-ext`（按 `SKILL.md` 执行 `bootstrap.sh`）。
+- 需要**双轨协作（规格 + 执行计划）**时走 `lean-spec-planning-with-files-bridge`（按 `SKILL.md` 执行 `bootstrap.sh`）。
 ```
 
 ## 日常使用建议
 
-1. 先判断问题类型（风格 / 评审流程 / 单元测试规范 / **规划工具落地**）。
-2. 选择对应入口（`styleguide-router`、`eng-practices`、`unit-test-router`、`planning-with-files-ext`）。
+1. 先判断问题类型（风格 / 评审流程 / 单元测试规范 / **双轨协作（规格+规划）**）。
+2. 选择对应入口（`styleguide-router`、`eng-practices`、`unit-test-router`、`lean-spec-planning-with-files-bridge`）。
 3. 输出以可执行建议为主，避免泛化描述。
 4. 与项目强制规范冲突时，以项目规范为准。
 

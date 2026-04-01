@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-01 11:15:07
-LatestChange: §6 AI 集成侧：补充 LeanSpec MCP 工具分工、与执行轨边界及嵌入流程要点，与桥接 SKILL 对齐。
+UpdatedAt: 2026-04-01 15:08:55
+LatestChange: 迁移至 lean-spec-planning-with-files-bridge（合并后的一体化双轨技能目录）；更新内部路径引用。
 -->
 
 # planning-with-files-zh + planning-with-files-ext + LeanSpec 协作文档
@@ -123,8 +123,8 @@ your-project/
 
 - [LeanSpec 中文指南（概述 / 快速开始 / AI 集成）](https://www.lean-spec.dev/zh-Hans/docs/guide/)  
 - [LeanSpec GitHub 仓库](https://github.com/codervisor/lean-spec)  
-- 本仓库：`shared-skills/planning-with-files-ext/SKILL.md`、`README.md`、`bootstrap.sh`  
-- 本协作文档（本文）源路径：`shared-skills/planning-with-files-lean-spec-bridge/planning-with-files-and-lean-spec-collaboration.md`  
+- 本仓库：`shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`、`README.md`、`bootstrap.sh`  
+- 本协作文档（本文）源路径：`shared-skills/lean-spec-planning-with-files-bridge/planning-with-files-and-lean-spec-collaboration.md`  
 - 技能：`planning-with-files-zh`（`SKILL.md` 全文，含安全边界与模板路径）
 
 ---
@@ -135,14 +135,14 @@ your-project/
 
 | 方式 | 作用 | 说明 |
 |------|------|------|
-| **Cursor 技能** `planning-with-files-lean-spec-bridge` | 触发后代理按固定清单：确认 ext 已落地 → 建/对齐 `specs/` → `plan.sh new` → 写入 `SpecRef` / `ExecutionPlan` → 填 Phase 骨架 | 目录：`shared-skills/planning-with-files-lean-spec-bridge/SKILL.md`；安装方式同 ext（软链或复制到 `~/.cursor/skills/` 或项目 `.cursor/skills/`） |
-| **`bootstrap-bridge.sh`** | 把**本协作文档**复制到目标仓库 `doc/plans/COORDINATION_LEANSPEC.md`，就近查阅 | 不修改 hooks/rules；可与 ext 的 `bootstrap.sh` 分开执行 |
+| **Cursor 技能** `lean-spec-planning-with-files-bridge` | 触发后代理按固定清单：确认已落地 → 建/对齐 `specs/` → `plan.sh new` → 写入 `SpecRef` / `ExecutionPlan` → 填 Phase 骨架 | 目录：`shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`；安装方式：软链或复制到 `~/.cursor/skills/` 或项目 `.cursor/skills/` |
+| **`bootstrap.sh`** | 一键写入 hooks/rules/脚本，并把**本协作文档**复制到目标仓库 `doc/plans/COORDINATION_LEANSPEC.md` | 合并了原 ext 的 bootstrap 与 bridge 的 bootstrap-bridge |
 
 **标准术语：双轨协作** — **规格轨**（`specs/`）与 **执行轨**（`doc/plans/`）并行，用 `SpecRef` / `ExecutionPlan` 轻量对齐；`planning-with-files-zh` 的纪律落在执行轨。**不要用「三件套」命名本工作流**：在 planning-with-files 语境下，「三件套」几乎总是指 **`task_plan` / `findings` / `progress` 三文件**，用作桥接口令会系统性误导 Agent。
 
 **推荐用户口令示例**（按不易误解程度排序）：
 
-1. **最明确**：「用 **planning-with-files-lean-spec-bridge**：为 `<功能名>` 建 **`specs/…` 规格** + **`doc/plans/<id>/` 计划**，并写 **SpecRef 与 ExecutionPlan**。」  
+1. **最明确**：「用 **lean-spec-planning-with-files-bridge**：为 `<功能名>` 建 **`specs/…` 规格** + **`doc/plans/<id>/` 计划**，并写 **SpecRef 与 ExecutionPlan**。」  
 2. **简短（推荐日常）**：「**按双轨**给 `<功能名>` 建 spec 和 plan，plan-id 用 `<id>`。」  
 3. **同义说法**：「**双轨开需求** `<功能名>`，plan `<id>`。」「**规执双轨**：…」（规=规格轨，执=执行轨。）
 
@@ -158,4 +158,4 @@ your-project/
 bash .cursor/shared-skills/configure-from-readme.sh
 ```
 
-脚本会先加载 shared-skills 根 README 中的默认块，再与业务 README 块合并；按**合并后**开关依次执行 `planning-with-files-ext/bootstrap.sh`、可选 `bootstrap-bridge.sh`、**解析** `cursor_skill_links`（如聚合包展开为 router）、校验 `SKILL.md` 并将路径写入 **`AGENTS.md`**（不创建 `.cursor/skills` 软链）。**启用项 = 默认块 ∪ 业务 README 覆盖**（与 `AGENTS.md` 路由列表互补）。
+脚本会先加载 shared-skills 根 README 中的默认块，再与业务 README 块合并；按**合并后**开关执行 `lean-spec-planning-with-files-bridge/bootstrap.sh`（一体化双轨）、**解析** `cursor_skill_links`（如聚合包展开为 router）、校验 `SKILL.md` 并将路径写入 **`AGENTS.md`**（不创建 `.cursor/skills` 软链）。**启用项 = 默认块 ∪ 业务 README 覆盖**（与 `AGENTS.md` 路由列表互补）。
