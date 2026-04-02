@@ -1,11 +1,11 @@
 <!--
-UpdatedAt: 2026-04-02 09:50:41
-LatestChange: 阶段完成段落补充合并闭环模板句（progress 单条含执行与 Spec 对照；无偏差不开独立自检会话）。
+UpdatedAt: 2026-04-02 09:59:54
+LatestChange: 用语对齐合并技能 lean-spec-planning-with-files-bridge；移除对已删除目录 planning-with-files-ext / bridge 的路径依赖表述。
 -->
 
-# planning-with-files-zh + planning-with-files-ext + LeanSpec 协作文档
+# planning-with-files-zh + lean-spec-planning-with-files-bridge + LeanSpec 协作文档
 
-本文说明如何在同一仓库内同时使用 **LeanSpec**（规格与项目视图）、**planning-with-files-zh**（对话纪律与三文件心智模型）、**planning-with-files-ext**（Cursor 落地：规则、hooks、`doc/plans/` 多计划）。LeanSpec 的定位与能力可参考官方中文指南：[什么是 LeanSpec？ | LeanSpec](https://www.lean-spec.dev/zh-Hans/docs/guide/) 与仓库 [codervisor/lean-spec](https://github.com/codervisor/lean-spec)。
+本文说明如何在同一仓库内同时使用 **LeanSpec**（规格与项目视图）、**planning-with-files-zh**（对话纪律与三文件心智模型）、**lean-spec-planning-with-files-bridge**（Cursor 落地：规则、hooks、`doc/plans/` 多计划与双轨强制）。LeanSpec 的定位与能力可参考官方中文指南：[什么是 LeanSpec？ | LeanSpec](https://www.lean-spec.dev/zh-Hans/docs/guide/) 与仓库 [codervisor/lean-spec](https://github.com/codervisor/lean-spec)。
 
 ---
 
@@ -15,7 +15,7 @@ LatestChange: 阶段完成段落补充合并闭环模板句（progress 单条含
 |------|------|----------|
 | **LeanSpec** | 「**做对的事**」：目标、场景、验收、非目标、元数据；可看板/统计/Web UI；AI 可通过 MCP/CLI 检索规格。 | `specs/` 下带 frontmatter 的 Markdown（如 `specs/001-xxx/README.md`） |
 | **planning-with-files-zh** | 「**怎么在对话里不丢上下文**」：先计划、写盘、两动作记发现、决策前重读、错误进表、外部原文不进易被 hook 反复注入的 `task_plan.md`。 | 心智模型与技能说明；可选 `session-catchup` 等（视安装方式而定） |
-| **planning-with-files-ext** | 「**在仓库里工程化落地**」：`.cursor/rules`、`hooks`、`doc/plans/<plan-id>/`、ACTIVE / SUB_ACTIVE、脚本 `plan.sh`。 | `doc/plans/…` 三文件 + Cursor 钩子 |
+| **lean-spec-planning-with-files-bridge** | 「**在仓库里工程化落地双轨**」：`.cursor/rules`、`hooks`、`doc/plans/<plan-id>/`、ACTIVE / SUB_ACTIVE、脚本 `plan.sh`，并强制 `specs/` 与 SpecRef/ExecutionPlan。 | `doc/plans/…` 三文件 + Cursor 钩子 |
 
 **原则**：LeanSpec 是规格的**对外真相源**；`doc/plans/<plan-id>/` 是**单次/并行执行**的真相源。不要用「全自动覆盖脚本」把两边糊成一个大文件，避免破坏手工维护的阶段与错误记录。
 
@@ -27,7 +27,7 @@ LatestChange: 阶段完成段落补充合并闭环模板句（progress 单条含
 your-project/
 ├── specs/                          # LeanSpec（lean-spec init 等）
 │   └── <编号或名称>/README.md      # 示例见 LeanSpec 文档
-├── doc/plans/                      # planning-with-files-ext
+├── doc/plans/                      # 执行轨（本技能 bootstrap）
 │   ├── ACTIVE                      # 当前全局 plan-id（一行）
 │   ├── planning-paths.sh           # bootstrap 生成，供 hooks source
 │   ├── plan.sh / new-plan.sh
@@ -44,7 +44,7 @@ your-project/
 └── …
 ```
 
-- **不要**再单独用 `docs/plan/` 放三文件（除非团队刻意不用 ext）；与 **ext 默认的 `doc/plans/`** 保持一致，hooks 才能正确注入。
+- **不要**再单独用 `docs/plan/` 放三文件（除非团队刻意不用本约定）；与 **本技能默认的 `doc/plans/`** 保持一致，hooks 才能正确注入。
 - LeanSpec 文档强调 Spec 宜小（&lt; 约 2000 Token）、结构化、[与 AI 协作](https://www.lean-spec.dev/zh-Hans/docs/guide/) —— 与「总纲简短、细节进子计划 / findings」一致。
 
 ---
@@ -52,7 +52,7 @@ your-project/
 ## 3. 初始化顺序（新项目）
 
 1. **LeanSpec**（按官方快速开始）：例如全局 `lean-spec` 或 `npx lean-spec init`，得到 `specs/` 等结构。参见 [指南 - 快速开始](https://www.lean-spec.dev/zh-Hans/docs/guide/)。
-2. **planning-with-files-ext**：在**项目根**执行本仓库中的 `bootstrap.sh`（可指定目标目录、可选 `--no-install-planning-with-files-zh`）。生成 `.cursor` 规则与 hooks、`doc/plans/` 脚本。
+2. **lean-spec-planning-with-files-bridge**：在**项目根**执行 shared-skills 中的 `lean-spec-planning-with-files-bridge/bootstrap.sh`（可指定目标目录、可选 `--no-install-planning-with-files-zh`）。生成 `.cursor` 规则与 hooks、`doc/plans/` 脚本，并复制协作文档。
 3. **planning-with-files-zh**：由 bootstrap **可选**复制/软链到 `.cursor/skills/planning-with-files-zh/`；复杂任务前 Agent 应对照技能全文中的矩阵与安全边界。
 
 可视化与检索（可选但推荐）：`lean-spec board`、`lean-spec stats`、`lean-spec ui`（见 [LeanSpec 指南](https://www.lean-spec.dev/zh-Hans/docs/guide/)）。
@@ -64,7 +64,7 @@ your-project/
 1. **定规格（LeanSpec）**  
    在 `specs/…` 写清目标、关键场景、验收标准、非目标；**frontmatter 须含 `created: YYYY-MM-DD`**（与 [LeanSpec 指南「一个简单示例」](https://www.lean-spec.dev/zh-Hans/docs/guide/) 一致）。另常用 `status`、`priority`、`tags`，以及依赖关系字段（如 `depends_on` / `related`，以官方文档为准）。
 
-2. **开执行计划（ext）**  
+2. **开执行计划（执行轨）**  
    `./doc/plans/plan.sh new <plan-id>`（或 `new-plan.sh`），保证 **effective** 目录下有 `task_plan.md`、`findings.md`、`progress.md`。
 
 3. **轻量桥接（双向引用，不重写）**  
@@ -72,7 +72,7 @@ your-project/
    - 在 **对应 Spec** 末尾增加：`ExecutionPlan: doc/plans/<plan-id>/`（或同等说明）。  
    规格变更时：**人工**调整 `task_plan.md` 的阶段/验收映射；执行发现规格问题时：**先写 `findings.md`**，再改 Spec。
 
-4. **执行与防漂移（zh + ext hooks）**  
+4. **执行与防漂移（zh + 本技能 hooks）**  
    - 重大决策前：重读 **effective** 的 `task_plan.md` + **对应 Spec**。  
    - 约每两次检索/阅读：结论进 **effective** 的 `findings.md` 或 `progress.md`。  
    - **不可信外部原文**只进 `findings.md`；`task_plan.md` 只保留消化后的结论（防 hook 反复注入带来的提示注入风险，见 planning-with-files-zh）。  
@@ -84,19 +84,19 @@ your-project/
 
 ---
 
-## 5. 父计划 + 子计划（ext）与 LeanSpec 的用法
+## 5. 父计划 + 子计划（执行轨）与 LeanSpec 的用法
 
 - **一个 Spec** 可对应 **一个父 plan**（`doc/plans/<父>/` 总纲 + `## 子计划索引表`）及多个 **子目录**（`<父>/<子>/` 各自三文件）。  
 - **总纲 `task_plan.md`**：大纲 + 子计划索引 + 各子完成判据（一句话）；**不要把大块 Phase 细节塞进总纲**，避免 pre-hook 反复 `head` 注入过载。  
 - **子计划**：详细 Phase、实现细节在子目录 `task_plan.md`。  
-- **SUB_ACTIVE** 由 Agent 维护；`plan.sh use` / `[计划: …]` **不**清除 `SUB_ACTIVE`（与 ext 的 `SKILL.md` 一致）。
+- **SUB_ACTIVE** 由 Agent 维护；`plan.sh use` / `[计划: …]` **不**清除 `SUB_ACTIVE`（与合并技能 `SKILL.md` 一致）。
 
 ---
 
 ## 6. AI 集成侧（可选）
 
 - **LeanSpec MCP**（规格轨推荐）：配置见 [MCP 集成](https://www.lean-spec.dev/zh-Hans/docs/guide/usage/mcp-integration)；代理对 **`specs/`** 的检索、视图、状态更新、依赖、校验与项目健康（`list` / `search` / `view` / `update` / `deps` / `validate` / `board` / `stats` 等，以 [MCP 服务器参考](https://www.lean-spec.dev/zh-Hans/docs/reference/mcp-server) 为准）**优先走 MCP**，与 **`SpecRef` 一行引用**互补——前者减少路径依赖与手改 frontmatter，后者保证仓库内直接可跳转。  
-- **执行轨不变**：**`doc/plans/` 三文件**仍用读写文件 + ext hooks；MCP **不**替代执行轨，**禁止**用 MCP/脚本整文件覆盖 `task_plan.md`「从 LeanSpec 同步任务列表」。  
+- **执行轨不变**：**`doc/plans/` 三文件**仍用读写文件 + 本技能安装的 hooks；MCP **不**替代执行轨，**禁止**用 MCP/脚本整文件覆盖 `task_plan.md`「从 LeanSpec 同步任务列表」。  
 - **planning-with-files**：依赖 Cursor hooks + 规则自动提醒读计划、写 progress；与 LeanSpec MCP **并行不冲突**；上下文里优先 **当前 effective** 三文件 +（若已配置 MCP 则同时可用 MCP 拉取 **当前 SpecRef** 对应 Spec 内容）。
 
 ---
@@ -108,7 +108,7 @@ your-project/
 | 用脚本整文件覆盖 `task_plan.md`「同步」LeanSpec 任务列表 | 用 SpecRef + 人工增量对齐；或仅生成「附录」草稿，不覆盖主计划 |
 | 把网页/API 长原文贴进 `task_plan.md` | 原文进 `findings.md`，计划里只写摘要 |
 | 规格与执行计划分两套目录且互不引用 | 至少保留 SpecRef / ExecutionPlan 双向一行引用 |
-| 在不用 ext 的路径下放三文件 | 统一用 `doc/plans/`，否则 Cursor hooks 不会生效 |
+| 在非 `doc/plans/` 约定路径下放三文件 | 统一用 `doc/plans/`，否则 Cursor hooks 不会生效 |
 
 ---
 
@@ -137,7 +137,7 @@ your-project/
 | 方式 | 作用 | 说明 |
 |------|------|------|
 | **Cursor 技能** `lean-spec-planning-with-files-bridge` | 触发后代理按固定清单：确认已落地 → 建/对齐 `specs/` → `plan.sh new` → 写入 `SpecRef` / `ExecutionPlan` → 填 Phase 骨架 | 目录：`shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`；安装方式：软链或复制到 `~/.cursor/skills/` 或项目 `.cursor/skills/` |
-| **`bootstrap.sh`** | 一键写入 hooks/rules/脚本，并把**本协作文档**复制到目标仓库 `doc/plans/COORDINATION_LEANSPEC.md` | 合并了原 ext 的 bootstrap 与 bridge 的 bootstrap-bridge |
+| **`bootstrap.sh`** | 一键写入 hooks/rules/脚本，并把**本协作文档**复制到目标仓库 `doc/plans/COORDINATION_LEANSPEC.md` | 一体化脚本（原分拆的 ext / bridge bootstrap 已合并；shared-skills 内旧目录已移除） |
 
 **标准术语：双轨协作** — **规格轨**（`specs/`）与 **执行轨**（`doc/plans/`）并行，用 `SpecRef` / `ExecutionPlan` 轻量对齐；`planning-with-files-zh` 的纪律落在执行轨。**不要用「三件套」命名本工作流**：在 planning-with-files 语境下，「三件套」几乎总是指 **`task_plan` / `findings` / `progress` 三文件**，用作桥接口令会系统性误导 Agent。
 
@@ -147,9 +147,9 @@ your-project/
 2. **简短（推荐日常）**：「**按双轨**给 `<功能名>` 建 spec 和 plan，plan-id 用 `<id>`。」  
 3. **同义说法**：「**双轨开需求** `<功能名>`，plan `<id>`。」「**规执双轨**：…」（规=规格轨，执=执行轨。）
 
-代理应读取桥接技能并执行其中「代理标准流程」；若用户只说要「文件规划、不要 specs」，则走 zh/ext，**不要**执行规格轨步骤。
+代理应读取桥接技能并执行其中「代理标准流程」；若用户只说要「文件规划、不要 specs」，则走 **planning-with-files-zh** 单独使用，**不要**用本技能执行规格轨步骤。
 
-**与 LeanSpec MCP**：若已配置 [AI 集成](https://www.lean-spec.dev/zh-Hans/docs/guide/) 中的 MCP，检索/更新 spec 可走 MCP；`doc/plans/` 三文件仍走文件与 ext hooks。
+**与 LeanSpec MCP**：若已配置 [AI 集成](https://www.lean-spec.dev/zh-Hans/docs/guide/) 中的 MCP，检索/更新 spec 可走 MCP；`doc/plans/` 三文件仍走文件与本技能 hooks。
 
 ### 10.1 业务项目用 README 声明、一条命令落地（推荐）
 

@@ -1,7 +1,7 @@
 ---
 name: lean-spec-planning-with-files-bridge
 description: >
-  强制双轨协作模式：将 LeanSpec（specs/）规格轨与 planning-with-files-ext（doc/plans/）执行轨合为一体。
+  强制双轨协作模式：将 LeanSpec（specs/）规格轨与执行轨（doc/plans/）合为一体。
   一键落地 Cursor 规则、hooks、doc/plans 辅助脚本与协作文档；支持路径 id（父/子至多两层）、SUB_ACTIVE 与 effective_dir、多计划目录与 ACTIVE 指针、task_plan/findings/progress 三文件及按需 execution_brief。
   规格轨推荐启用 LeanSpec MCP（list/search/view/update/deps/validate/board 等）以降低路径依赖与手改 frontmatter 成本；执行轨仍只维护 doc/plans 三文件与 hooks。
   所有通过本技能创建的计划必须同时建立规格轨（specs/）与执行轨（doc/plans/），并写入 SpecRef/ExecutionPlan 双向引用。
@@ -12,8 +12,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-04-02 09:50:41
-LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认阶段关门策略；新增「阶段闭环策略」、DoD 第 3 条细化、MCP 与 DoD 分工说明；行为要点补充 SpecRef hook 语义区分说明。
+UpdatedAt: 2026-04-02 09:59:54
+LatestChange: 描述字段去掉已删除技能名 planning-with-files-ext；执行轨用语与合并技能一致。
 -->
 
 # lean-spec-planning-with-files-bridge（一体化双轨协作技能）

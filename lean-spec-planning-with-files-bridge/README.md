@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 09:50:41
-LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认提示词路径；阶段验收改为速查引用；常见偏差增「双会话重复」一行。
+UpdatedAt: 2026-04-02 09:59:54
+LatestChange: 协作文档与 shared-skills 总纲同步：shared-skills 内原 ext/bridge 目录已删除，仅保留本合并技能。
 -->
 
 # lean-spec-planning-with-files-bridge

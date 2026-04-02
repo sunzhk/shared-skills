@@ -1,7 +1,4 @@
-<!--
-UpdatedAt: 2026-04-01 15:08:55
-LatestChange: planning-with-files-ext 与 planning-with-files-lean-spec-bridge 合并为 lean-spec-planning-with-files-bridge；更新技能描述、配置键与引用路径。
--->
+
 
 # shared-skills（给人看的说明）
 
@@ -40,14 +37,6 @@ LatestChange: planning-with-files-ext 与 planning-with-files-lean-spec-bridge �
 - 典型场景：初始化规划目录并同时建立规格轨、安装 planning hooks、多计划 `ACTIVE` 指针、**双轨协作**（`specs/` + `doc/plans/` + `SpecRef`/`ExecutionPlan`）。口令建议用 **「按双轨」**、**「双轨开需求」** 或技能全名。
 - 入口 skill：`lean-spec-planning-with-files-bridge/SKILL.md`；人类操作说明见同目录 `README.md`（`bootstrap.sh`）。
 - 权威协作文档：`lean-spec-planning-with-files-bridge/planning-with-files-and-lean-spec-collaboration.md`（bootstrap 复制到 `doc/plans/COORDINATION_LEANSPEC.md`）。
-
-### `planning-with-files-ext/`（⚠️ 已废弃）
-
-- 已合并至 `lean-spec-planning-with-files-bridge/`。旧目录保留历史内容供参考。
-
-### `planning-with-files-lean-spec-bridge/`（⚠️ 已废弃）
-
-- 已合并至 `lean-spec-planning-with-files-bridge/`。旧目录保留历史内容供参考。
 
 ## LeanSpec 安装与初始化（须自行完成）
 
@@ -134,7 +123,7 @@ git submodule update --remote --recursive
 
 ## README 驱动一键配置（推荐：落仓库规则与技能入口）
 
-目标：人类或 CI 在业务项目根执行一条 `configure-from-readme.sh`，即可完成 `.cursor/`、`doc/plans/`、**`AGENTS.md` 中的 Shared Skills 列表**等。**默认键值（含 `cursor_skill_links`）已预写在 shared-skills 仓库根 `README.md` 的 `<!-- shared-skills-config -->` 中**；脚本**先应用该默认块，再读取业务项目 `README.md` 中的同名块并覆盖**。因此空项目或仅有不含配置块的 README 时，**无需手写 `cursor_skill_links`**；仅在需要关闭某项或增减技能时，在业务 README 中加块覆盖即可。
+目标：人类或 CI 在业务项目根执行一条 `configure-from-readme.sh`，即可完成 `.cursor/`、`doc/plans/`、`**AGENTS.md` 中的 Shared Skills 列表**等。**默认键值（含 `cursor_skill_links`）已预写在 shared-skills 仓库根 `README.md` 的 `<!-- shared-skills-config -->` 中**；脚本**先应用该默认块，再读取业务项目 `README.md` 中的同名块并覆盖**。因此空项目或仅有不含配置块的 README 时，**无需手写 `cursor_skill_links`**；仅在需要关闭某项或增减技能时，在业务 README 中加块覆盖即可。
 
 ### 1. 业务项目 `README.md` 中的配置块（可选）
 
@@ -152,17 +141,17 @@ cursor_skill_links=lean-spec-planning-with-files-bridge,eng-practices,code-style
 -->
 ```
 
-**向后兼容**：旧键 `planning_with_files_ext=1` 与 `lean_spec_bridge_doc=1` 仍可识别，脚本会优先使用合并后的 bootstrap；建议逐步迁移到 `lean_spec_planning=1`。
+**向后兼容**：旧键 `planning_with_files_ext=1` 仍映射至 `lean-spec-planning-with-files-bridge/bootstrap.sh`；建议迁移到 `lean_spec_planning=1`。旧键 `lean_spec_bridge_doc` 已废弃（协作文档复制已含于一体化 bootstrap）；若仅设置该键而未启用 `lean_spec_planning`，脚本会提示改用 `lean_spec_planning=1`。
 
 **布尔值**：`1` / `true` / `yes` / `on` 为启用，其余为不启用。
 
-**执行顺序**（脚本固定）：合并配置（shared-skills 根 README 默认块 → 业务 README 覆盖）→ `lean_spec_planning`（或向后兼容 `planning_with_files_ext` + `lean_spec_bridge_doc`）→ **解析** `cursor_skill_links`（含聚合包名展开）→ 校验 `SKILL.md` → 写入 `AGENTS.md`。
+**执行顺序**（脚本固定）：合并配置（shared-skills 根 README 默认块 → 业务 README 覆盖）→ `lean_spec_planning`（或向后兼容 `planning_with_files_ext`，均调用同一 `bootstrap.sh`）→ **解析** `cursor_skill_links`（含聚合包名展开）→ 校验 `SKILL.md` → 写入 `AGENTS.md`。
 
 **不在此脚本内**：**LeanSpec** 的 CLI 安装、`lean-spec init` / `npx lean-spec init`、MCP 配置等——详见上文 **「LeanSpec 安装与初始化（须自行完成）」**；需要时可后续在配置块增加新键并在 `configure-from-readme.sh` 中实现自动化。
 
-**`cursor_skill_links` 说明**：逗号分隔；每一项解析后为 **shared-skills 根下的相对路径**，且该路径（最后一级目录）下须有 `SKILL.md`。普通技能包为单层名（如 `eng-practices`、`lean-spec-planning-with-files-bridge`）。**聚合包**可写顶层目录名 `code-styleguide-skills` 或 `unit-test-guide-skills`，脚本会分别展开为 `code-styleguide-skills/styleguide-router`、`unit-test-guide-skills/unit-test-router` 再校验与写入；若你更希望显式声明，也可直接写上述带子路径的项（与展开结果相同，不会重复写入）。脚本将 `.cursor/shared-skills/<解析后路径>/SKILL.md` 写入 `AGENTS.md`，**不会**向 `.cursor/skills/` 创建软链。`planning-with-files-zh` 通常由 bootstrap 从本机 `~/.agents/skills/` 安装到项目，**不必**在此列表中重复。
+`**cursor_skill_links` 说明**：逗号分隔；每一项解析后为 **shared-skills 根下的相对路径**，且该路径（最后一级目录）下须有 `SKILL.md`。普通技能包为单层名（如 `eng-practices`、`lean-spec-planning-with-files-bridge`）。**聚合包**可写顶层目录名 `code-styleguide-skills` 或 `unit-test-guide-skills`，脚本会分别展开为 `code-styleguide-skills/styleguide-router`、`unit-test-guide-skills/unit-test-router` 再校验与写入；若你更希望显式声明，也可直接写上述带子路径的项（与展开结果相同，不会重复写入）。脚本将 `.cursor/shared-skills/<解析后路径>/SKILL.md` 写入 `AGENTS.md`，**不会**向 `.cursor/skills/` 创建软链。`planning-with-files-zh` 通常由 bootstrap 从本机 `~/.agents/skills/` 安装到项目，**不必**在此列表中重复。
 
-**`AGENTS.md` 写入**：脚本执行结束前会自动写入或更新业务项目根 `AGENTS.md` 中的 `## Shared Skills` 节，内容为解析后各技能的 `.cursor/shared-skills/.../SKILL.md` 路径（可含 `/`）。`AGENTS.md` 应提交到 git，使团队所有成员和 CI 环境中的 Agent 在冷启动时即可正确路由，**无需再次运行配置脚本**。
+`**AGENTS.md` 写入**：脚本执行结束前会自动写入或更新业务项目根 `AGENTS.md` 中的 `## Shared Skills` 节，内容为解析后各技能的 `.cursor/shared-skills/.../SKILL.md` 路径（可含 `/`）。`AGENTS.md` 应提交到 git，使团队所有成员和 CI 环境中的 Agent 在冷启动时即可正确路由，**无需再次运行配置脚本**。
 
 ### 2. 一键执行（ submodule 场景）
 
@@ -182,9 +171,9 @@ SKILLS_ROOT=/path/to/shared-skills bash /path/to/shared-skills/configure-from-re
 
 ### 3. 与 `AGENTS.md` 的关系
 
-- **`README.md` 配置块 + `configure-from-readme.sh`**：负责**仓库内可执行产物**（规则、hooks、计划目录、协作文档副本、**`AGENTS.md` 的 Shared Skills 节**）。
-- **`AGENTS.md`**：由脚本自动生成其中的 `## Shared Skills` 节；人工部分（团队约定、项目级路由）可继续手写在其他节，脚本不会触碰。
-- **`AGENTS.md` 须提交 git**：它是 Agent 冷启动的路由入口，不提交则新同学/CI clone 后 Agent 无法发现 skill。
+- `**README.md` 配置块 + `configure-from-readme.sh**`：负责**仓库内可执行产物**（规则、hooks、计划目录、协作文档副本、`**AGENTS.md` 的 Shared Skills 节**）。
+- `**AGENTS.md`**：由脚本自动生成其中的 `## Shared Skills` 节；人工部分（团队约定、项目级路由）可继续手写在其他节，脚本不会触碰。
+- `**AGENTS.md` 须提交 git**：它是 Agent 冷启动的路由入口，不提交则新同学/CI clone 后 Agent 无法发现 skill。
 
 ### 4. Agent 冷启动预期行为
 
@@ -245,3 +234,4 @@ SKILLS_ROOT=/path/to/shared-skills bash /path/to/shared-skills/configure-from-re
   - `README.md`（总纲）
   - `README.human.md`（人类说明）
   - `README.ai.md`（AI 运行规则）
+

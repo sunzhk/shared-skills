@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-01 15:08:55
-LatestChange: planning-with-files-ext 与 planning-with-files-lean-spec-bridge 合并为 lean-spec-planning-with-files-bridge；更新路由规则、冷启动流程与 AGENTS.md 示例。
+UpdatedAt: 2026-04-02 09:59:54
+LatestChange: shared-skills 已移除废弃技能目录；configure-from-readme 仅调用 lean-spec-planning-with-files-bridge/bootstrap.sh。
 -->
 
 # shared-skills（给 AI 看的运行规则）

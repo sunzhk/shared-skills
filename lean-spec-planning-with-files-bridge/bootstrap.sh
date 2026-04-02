@@ -1,10 +1,10 @@
 #!/bin/bash
 # lean-spec-planning-with-files-bridge: 一体化双轨协作 bootstrap
-# 合并自 planning-with-files-ext/bootstrap.sh + planning-with-files-lean-spec-bridge/bootstrap-bridge.sh
+# 历史：由原 planning-with-files-ext 与 planning-with-files-lean-spec-bridge 合并；shared-skills 内旧目录已移除。
 # 产物：.cursor/rules、hooks.json、hooks/*.sh、doc/plans/ 脚本、COORDINATION_LEANSPEC.md
 # hooks 加强：SpecRef 感知——若 task_plan.md 含 SpecRef: 行，hook 输出额外提醒对照规格验收。
-# UpdatedAt: 2026-04-02 09:50:41
-# LatestChange: 基于 002-A9-3 复盘结论，hook 与 .mdc 中 SpecRef 提醒文案差异化；合并闭环视为满足门禁。
+# UpdatedAt: 2026-04-02 09:59:54
+# LatestChange: 文件头注释与废弃目录移除对齐；逻辑未改。
 
 set -euo pipefail
 
