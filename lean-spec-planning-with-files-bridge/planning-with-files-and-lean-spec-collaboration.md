@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 11:22:46 +0800
-LatestChange: 五步工作流「阶段完成」补充末尾阶段双轨收尾（与 README 步骤 6 合并、不另开会话）。
+UpdatedAt: 2026-04-02 16:49:40 +0800
+LatestChange: 补全双轨协作的 Spec 状态流转：明确 draft→planned→in-progress→complete 主路径，并说明 archived 为独立终态。
 -->
 
 # planning-with-files-zh + lean-spec-planning-with-files-bridge + LeanSpec 协作文档
@@ -13,7 +13,7 @@ LatestChange: 五步工作流「阶段完成」补充末尾阶段双轨收尾（
 
 | 组件 | 职责 | 典型产物 |
 |------|------|----------|
-| **LeanSpec** | 「**做对的事**」：目标、场景、验收、非目标、元数据；可看板/统计/Web UI；AI 可通过 MCP/CLI 检索规格。 | `specs/` 下带 frontmatter 的 Markdown（如 `specs/001-xxx/README.md`） |
+| **LeanSpec** | 「**做对的事**」：目标、场景、验收、非目标、元数据；**规格状态流转**（`draft → planned → in-progress → complete`，`archived` 为独立终态）；可看板/统计/Web UI；AI 可通过 MCP/CLI 检索规格。 | `specs/` 下带 frontmatter 的 Markdown（如 `specs/001-xxx/README.md`） |
 | **planning-with-files-zh** | 「**怎么在对话里不丢上下文**」：先计划、写盘、两动作记发现、决策前重读、错误进表、外部原文不进易被 hook 反复注入的 `task_plan.md`。 | 心智模型与技能说明；可选 `session-catchup` 等（视安装方式而定） |
 | **lean-spec-planning-with-files-bridge** | 「**在仓库里工程化落地双轨**」：`.cursor/rules`、`hooks`、`doc/plans/<plan-id>/`、ACTIVE / SUB_ACTIVE、脚本 `plan.sh`，并强制 `specs/` 与 SpecRef/ExecutionPlan。 | `doc/plans/…` 三文件 + Cursor 钩子 |
 
@@ -62,7 +62,7 @@ your-project/
 ## 4. 五步协作工作流
 
 1. **定规格（LeanSpec）**  
-   在 `specs/…` 写清目标、关键场景、验收标准、非目标；**frontmatter 须含 `created: YYYY-MM-DD`**（与 [LeanSpec 指南「一个简单示例」](https://www.lean-spec.dev/zh-Hans/docs/guide/) 一致）。另常用 `status`、`priority`、`tags`，以及依赖关系字段（如 `depends_on` / `related`，以官方文档为准）。
+   在 `specs/…` 写清目标、关键场景、验收标准、非目标；**frontmatter 须含 `created: YYYY-MM-DD`**（与 [LeanSpec 指南「一个简单示例」](https://www.lean-spec.dev/zh-Hans/docs/guide/) 一致）。新建 Spec 时将 `status` 初始化为 `draft`（规格撰写中）。另常用 `priority`、`tags`，以及依赖关系字段（如 `depends_on` / `related`，以官方文档为准）。
 
 2. **开执行计划（执行轨）**  
    `./doc/plans/plan.sh new <plan-id>`（或 `new-plan.sh`），保证 **effective** 目录下有 `task_plan.md`、`findings.md`、`progress.md`。
@@ -73,6 +73,8 @@ your-project/
    规格变更时：**人工**调整 `task_plan.md` 的阶段/验收映射；执行发现规格问题时：**先写 `findings.md`**，再改 Spec。
 
 4. **执行与防漂移（zh + 本技能 hooks）**  
+   - 当 Spec 已审阅通过、范围冻结且可进入执行时，将 Spec `status` 从 `draft` 更新为 `planned`。  
+   - 当首次开始实际实施（进入编码/改仓库文件）时，将 Spec `status` 从 `planned` 更新为 `in-progress`。  
    - 重大决策前：重读 **effective** 的 `task_plan.md` + **对应 Spec**。  
    - 约每两次检索/阅读：结论进 **effective** 的 `findings.md` 或 `progress.md`。  
    - **不可信外部原文**只进 `findings.md`；`task_plan.md` 只保留消化后的结论（防 hook 反复注入带来的提示注入风险，见 planning-with-files-zh）。  
@@ -81,7 +83,8 @@ your-project/
 5. **阶段完成**  
    对照 LeanSpec 中的验收项自检；更新 **effective** `task_plan.md` 状态与 `progress.md`；若验收或范围变化，**更新 Spec** 并记下变更说明（可在 `findings.md` 留一条「规格变更记录」摘要）。  
    合并闭环时，`progress.md` 单条条目须同时包含执行结果与 Spec 对照结论；无偏差时不开独立自检会话。  
-   最后一个阶段的完成还包括**双轨收尾**：Spec 终态标记（MCP `update` 或文件修改）、`validate`、执行轨与规格轨一致性简述——与 `lean-spec-planning-with-files-bridge/README.md` **步骤 6** 合并执行，不另开会话。
+   最后一个阶段的完成还包括**双轨收尾**：将 Spec `status` 从 `in-progress` 更新为 `complete`（MCP `update` 或文件修改）、运行 `validate`、执行轨与规格轨一致性简述——与 `lean-spec-planning-with-files-bridge/README.md` **收尾步骤**合并执行，不另开会话。  
+   `archived` 为**独立终态**：当需求取消/不再相关时，可从任意状态将 Spec 标为 `archived`，不强行走完主流程。
 
 ---
 

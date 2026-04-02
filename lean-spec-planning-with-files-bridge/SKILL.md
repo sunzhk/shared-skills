@@ -12,8 +12,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-04-02 11:22:46 +0800
-LatestChange: 代理流程「收尾」与 task_plan 末尾阶段 DoD 默认合并；补充双轨收尾执行说明。
+UpdatedAt: 2026-04-02 16:49:40 +0800
+LatestChange: 补全双轨协作中的 Spec 状态流转：将 draft 与 in-progress 纳入主流程，并明确 archived 为独立终态规则与修改时机。
 -->
 
 # lean-spec-planning-with-files-bridge（一体化双轨协作技能）
@@ -62,7 +62,7 @@ LatestChange: 代理流程「收尾」与 task_plan 末尾阶段 DoD 默认合�
 | 创建规格 | `create` | 新建 Spec（或 CLI / 手工） |
 | 映射验收到 Phase | `view`、`search` | 拉取验收段落，减少漏项 |
 | 阶段开始前 | `deps` | 确认依赖是否就绪 |
-| 阶段完成后 | `update` | 反映规格状态（如 `in_progress` → `complete`） |
+| 状态变更（规格轨） | `update` | 更新 Spec `status`（`draft`→`planned`、`planned`→`in-progress`、`in-progress`→`complete`、`any`→`archived`） |
 | 里程碑 / 合并前 | `validate` | 结构与质量校验 |
 | 收尾 | `board`、`stats` | 与 `progress.md` 对照完成度 |
 
@@ -132,7 +132,8 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
 
 2. **规格（LeanSpec）**
    - 若已配置 MCP：先用 `search` / `list` 查是否已有相关 Spec，避免重复。
-   - 若尚无对应 spec：创建或调用 `lean-spec specify …` / MCP `create` / 手工建立 `specs/…` 文件，包含目标、场景、验收、非目标；**frontmatter 须含 `created`**，日期格式为 **`YYYY-MM-DD`**。
+   - 若尚无对应 spec：创建或调用 `lean-spec specify …` / MCP `create` / 手工建立 `specs/…` 文件，包含目标、场景、验收、非目标；**frontmatter 须含 `created`**，日期格式为 **`YYYY-MM-DD`**；并将 `status` 初始化为 `draft`（规格撰写中）。
+   - 当 Spec 已审阅通过、范围稳定且可进入执行时，将 `status` 从 `draft` 更新为 `planned`（规格冻结，可开工）。
 
 3. **执行计划（ext）**
    - 运行 `./doc/plans/plan.sh new <plan-id>`（或等价），保证 **effective** 目录下存在三文件。
@@ -147,9 +148,39 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
    - 大块调研与外部原文只写入 `findings.md`。
 
 6. **收尾（默认合并到末尾阶段的 DoD）**
-   - 若 `task_plan` 末尾阶段含双轨收尾子项，Agent 在该阶段 DoD 中一并完成：Spec 终态（MCP `update` 或文件修改）、`validate`、一致性简述。
+   - 当首次开始实际实施（进入编码/改仓库文件）时，将 Spec `status` 从 `planned` 更新为 `in-progress`（执行已开始）。
+   - 若 `task_plan` 末尾阶段含双轨收尾子项，Agent 在该阶段 DoD 中一并完成：Spec 终态（`in-progress` → `complete`，用 MCP `update` 或文件修改）、`validate`、一致性简述。
    - 仅在末尾阶段未涵盖 MCP 操作或需独立确认时，作为单独步骤执行。
    - 提醒用户可选用：`lean-spec board`、`lean-spec ui`；已配置 MCP 时可用 MCP 的 `board` / `stats`。
+
+## Spec 状态流转规则（规格轨）
+
+本技能将 LeanSpec 的 `status` 字段作为**规格轨的真相源**，并与执行轨（`doc/plans/<plan-id>/` 的 Phase 状态）形成互补：
+
+- **主流程**：`draft` → `planned` → `in-progress` → `complete`
+- **独立终态**：`archived`（可从任意状态跳转；不强行纳入主流程）
+
+### 状态语义与进入条件
+
+| 状态 | 语义 | 进入条件（推荐） | 退出条件（推荐） |
+|------|------|------------------|------------------|
+| `draft` | 规格撰写/精炼中，不应进入执行 | 新建 Spec 默认即 `draft` | 规格审阅通过、范围冻结 → `planned` |
+| `planned` | 规格冻结，可开工但尚未开始 | 计划已成型、验收可对照、依赖基本明确 | 首次开始实际实施 → `in-progress` |
+| `in-progress` | 执行已开始 | 至少一个 Phase 进入执行（或已有代码改动） | 所有 Phase 完成且通过对照验收 → `complete` |
+| `complete` | 完成 | 最后阶段双轨收尾完成（含 validate） | （通常不回退；需要时可手工调整） |
+| `archived` | 取消/不再相关 | 需求取消、方向变化、被替代等 | （独立终态；需要时可手工恢复到 `draft`/`planned`） |
+
+### Agent 修改 `status` 的规则
+
+- **允许修改的时机**：
+  - **新建/对齐 Spec**：初始化为 `draft`
+  - **审阅冻结后**：`draft` → `planned`
+  - **首次实施开始时**：`planned` → `in-progress`
+  - **收尾交付时**：`in-progress` → `complete`（通常与末尾阶段 DoD 合并）
+  - **明确取消/不再做**：`any` → `archived`（独立终态，不要求走完主流程）
+- **禁止的行为**：
+  - 不要因为“创建了执行计划目录”就自动把 Spec 从 `draft` 改为 `planned`
+  - 不要把执行轨 Phase 的 `in_progress/pending/complete` 与 Spec 的 `status` 混为一谈（两者语义不同）
 
 ## 阶段完成定义（DoD）
 

@@ -3,8 +3,8 @@
 # 历史：由原 planning-with-files-ext 与 planning-with-files-lean-spec-bridge 合并；shared-skills 内旧目录已移除。
 # 产物：.cursor/rules、hooks.json、hooks/*.sh、doc/plans/ 脚本、COORDINATION_LEANSPEC.md
 # hooks 加强：SpecRef 感知——若 task_plan.md 含 SpecRef: 行，hook 输出额外提醒对照规格验收。
-# UpdatedAt: 2026-04-02 09:59:54
-# LatestChange: 文件头注释与废弃目录移除对齐；逻辑未改。
+# UpdatedAt: 2026-04-02 16:55:02 +0800
+# LatestChange: 补充落地 LeanSpec 模板与 specs 说明：在目标仓库写入 spec-template.md 的默认 draft 状态，并为 specs/README.md 写入状态流转说明（如存在不同版本则打印 diff 并中断）。
 
 set -euo pipefail
 
@@ -63,6 +63,140 @@ HOOKS_DIR="${CURSOR_DIR}/hooks"
 PLANS_DIR="${TARGET_ROOT}/doc/plans"
 
 mkdir -p "${RULES_DIR}" "${HOOKS_DIR}" "${PLANS_DIR}"
+
+# ── 落地 LeanSpec 模板与 specs 说明（保守：不覆盖不一致文件） ────────────────────
+install_lean_spec_templates_and_docs() {
+  local lean_spec_tpl_dir="${TARGET_ROOT}/.lean-spec/templates"
+  local lean_spec_tpl_file="${lean_spec_tpl_dir}/spec-template.md"
+  local lean_spec_tpl_want
+  lean_spec_tpl_want="$(mktemp)"
+
+  local specs_readme_dir="${TARGET_ROOT}/specs"
+  local specs_readme_file="${specs_readme_dir}/README.md"
+  local specs_readme_want
+  specs_readme_want="$(mktemp)"
+
+  mkdir -p "${lean_spec_tpl_dir}" "${specs_readme_dir}"
+
+  cat > "${lean_spec_tpl_want}" <<'EOF'
+---
+status: draft
+created: '{date}'
+tags: []
+priority: medium
+---
+
+# {name}
+
+> **Status**: {status} · **Priority**: {priority} · **Created**: {date}
+
+## Overview
+
+<!-- What are we solving? Why now? -->
+
+## Design
+
+<!-- Technical approach, architecture decisions -->
+
+## Plan
+
+<!-- Break down implementation into steps -->
+
+<!-- 💡 TIP: If your plan has >6 phases or this spec approaches 
+     400 lines, consider using sub-spec files:
+     - IMPLEMENTATION.md for detailed implementation
+     - See spec 012-sub-spec-files for guidance on splitting -->
+
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
+
+## Test
+
+<!-- How will we verify this works? -->
+
+- [ ] Test criteria 1
+- [ ] Test criteria 2
+
+## Notes
+
+<!-- Optional: Research findings, alternatives considered, open questions -->
+EOF
+
+  cat > "${specs_readme_want}" <<'EOF'
+# Specs
+
+This directory contains LeanSpec specifications for this project.
+
+## Quick Start
+
+```bash
+# Create a new spec
+lean-spec create my-feature
+
+# List all specs
+lean-spec list
+
+# View the board
+lean-spec board
+
+# Validate specs
+lean-spec validate
+```
+
+## Structure
+
+Each spec lives in a numbered directory with a `README.md` file:
+
+```
+├── 001-feature-name/
+│   └── README.md
+└── 002-another-feature/
+    └── README.md
+```
+
+## Spec Status Values
+
+- `draft` - Being authored or refined
+- `planned` - Not yet started
+- `in-progress` - Currently being worked on  
+- `complete` - Finished
+- `archived` - No longer relevant
+
+Status flow (recommended): `draft -> planned -> in-progress -> complete`. `archived` is an independent terminal state (can be applied from any state when a spec is cancelled or no longer relevant).
+
+## Learn More
+
+Visit [leanspec.dev](https://leanspec.dev) for documentation.
+EOF
+
+  if [[ -f "${lean_spec_tpl_file}" ]] && ! cmp -s "${lean_spec_tpl_want}" "${lean_spec_tpl_file}"; then
+    echo "[lean-spec-planning] 错误: 已存在与本模板不一致的 ${lean_spec_tpl_file}，为避免覆盖已有模板，已中断。" >&2
+    echo "  处理建议: 备份后手工合并；或移走/删除该文件后重试。" >&2
+    echo "--- 差异预览 (unified diff) ---" >&2
+    diff -u "${lean_spec_tpl_file}" "${lean_spec_tpl_want}" >&2 || true
+    rm -f "${lean_spec_tpl_want}" "${specs_readme_want}"
+    exit 1
+  fi
+
+  if [[ -f "${specs_readme_file}" ]] && ! cmp -s "${specs_readme_want}" "${specs_readme_file}"; then
+    echo "[lean-spec-planning] 错误: 已存在与本模板不一致的 ${specs_readme_file}，为避免覆盖已有说明文档，已中断。" >&2
+    echo "  处理建议: 备份后手工合并；或移走/删除该文件后重试。" >&2
+    echo "--- 差异预览 (unified diff) ---" >&2
+    diff -u "${specs_readme_file}" "${specs_readme_want}" >&2 || true
+    rm -f "${lean_spec_tpl_want}" "${specs_readme_want}"
+    exit 1
+  fi
+
+  cp "${lean_spec_tpl_want}" "${lean_spec_tpl_file}"
+  cp "${specs_readme_want}" "${specs_readme_file}"
+  rm -f "${lean_spec_tpl_want}" "${specs_readme_want}"
+
+  echo "[lean-spec-planning] 已写入 LeanSpec spec 模板: ${lean_spec_tpl_file}" >&2
+  echo "[lean-spec-planning] 已写入 specs 目录说明: ${specs_readme_file}" >&2
+}
+
+install_lean_spec_templates_and_docs
 
 # ── 安装 planning-with-files-zh（可选） ─────────────────────────────────────────
 install_planning_with_files_zh_if_possible() {

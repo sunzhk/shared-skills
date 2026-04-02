@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 11:22:46 +0800
-LatestChange: 双轨收尾简化：步骤 6 与 task_plan 末尾阶段默认合并；补充收尾合并说明段落。
+UpdatedAt: 2026-04-02 16:49:40 +0800
+LatestChange: 补全双轨流程中的 Spec 状态流转：将 draft 与 in-progress 纳入主流程，并明确 archived 为独立终态。
 -->
 
 # lean-spec-planning-with-files-bridge
@@ -87,15 +87,16 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 
 | 步骤 | 你要做的事 | 提示词示例（发给 Agent） |
 |------|------------|-------------------------|
-| 1. 开双轨 | 一次性建立 Spec + 执行计划 + 双向引用 + 阶段骨架 | `按双轨协作为「<功能简述>」开需求：plan-id 用 <plan-id>。请先通过 LeanSpec MCP 做 search/list 避免重复 spec；再建或对齐 specs/ 下对应 README（含目标、场景、验收、非目标，frontmatter 含 created: YYYY-MM-DD）；再执行 ./doc/plans/plan.sh new <plan-id>；在 effective 的 task_plan.md 顶部写 SpecRef，在 Spec 里写 ExecutionPlan；把验收项映射成若干 Phase，调研长文只进 findings.md。` |
+| 1. 开双轨（draft） | 一次性建立 Spec（先置为 draft）+ 执行计划 + 双向引用 + 阶段骨架 | `按双轨协作为「<功能简述>」开需求：plan-id 用 <plan-id>。请先通过 LeanSpec MCP 做 search/list 避免重复 spec；再建或对齐 specs/ 下对应 README（含目标、场景、验收、非目标，frontmatter 含 created: YYYY-MM-DD，status 先设为 draft）；再执行 ./doc/plans/plan.sh new <plan-id>；在 effective 的 task_plan.md 顶部写 SpecRef，在 Spec 里写 ExecutionPlan；把验收项映射成若干 Phase，调研长文只进 findings.md。` |
 | 2. 审计划 | 你打开 `doc/plans/<plan-id>/task_plan.md` 与对应 Spec，改到满意 | （自行编辑保存，无需固定句式。） |
 | 3. 切换当前计划 | 让执行轨对准本次目录 | `[计划: <plan-id>]` 或：`将 ACTIVE 设为 <plan-id>，我要在该计划上工作。` |
-| 4. 实施+验收阶段 1（默认） | 单次会话完成实施、Spec 自检与三文件更新 | `当前 effective 计划是 <plan-id>。请执行 task_plan.md 中的阶段 1；工具编辑后更新 progress.md；阶段收尾时对照 SpecRef/MCP view 中与本阶段相关的验收项自检，无偏差则一次性更新 progress（含执行结果与 Spec 对照结论）和 task_plan 阶段状态；不要重复已做过的 grep/compile（除非源码或 Spec 有变更）。勿把长原文贴进 task_plan.md。` |
+| 4. 启动实施（draft → planned → in-progress） | 在开始编码/落地前，冻结规格为 planned；首次实际开始实施时置为 in-progress | `当前 effective 计划是 <plan-id>。开始实施前请先确认 Spec 已从 draft 置为 planned（表示规格已冻结可执行）；当你准备开始实际实现/改代码时，将 Spec status 更新为 in-progress；然后执行 task_plan.md 中的阶段 1。` |
+| 5. 实施+验收阶段 N（默认） | 单次会话完成实施、Spec 自检与三文件更新 | `请执行 task_plan.md 中的阶段 <N>；工具编辑后更新 progress.md；阶段收尾时对照 SpecRef/MCP view 中与本阶段相关的验收项自检，无偏差则一次性更新 progress（含执行结果与 Spec 对照结论）和 task_plan 阶段状态；不要重复已做过的 grep/compile（除非源码或 Spec 有变更）。勿把长原文贴进 task_plan.md。` |
 | 4a. 独立验收（可选） | 仅在有偏差/需独立签认时使用 | `阶段 1 存在偏差，请单独对照 Spec 验收项自检；以 Spec 条款 checklist 为主，不重复已做过的静态检索与构建；偏差先记 findings.md 再修正。` |
-| 5. 重复 4～4a | 直到所有阶段完成 | 将提示词里的「阶段 1 / 阶段 2」依次数递增；默认用步骤 4 的合并闭环提示词，仅在需要时用 4a。 |
-| 6. 收尾（通常与末尾阶段合并） | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 标为合适终态（如 complete）、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
+| 6. 重复 5～4a | 直到所有阶段完成 | 将提示词里的「阶段 1 / 阶段 2」依次数递增；默认用步骤 5 的合并闭环提示词，仅在需要时用独立验收（步骤 4a）。 |
+| 7. 收尾（in-progress → complete；通常与末尾阶段合并） | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 从 in-progress 更新为 complete、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
 
-**收尾合并**：步骤 6 的操作通常在 `task_plan.md` 最后一个阶段（默认阶段 5）中一并完成。仅在以下情况单独发送步骤 6 口令：
+**收尾合并**：步骤 7 的操作通常在 `task_plan.md` 最后一个阶段（默认阶段 5）中一并完成。仅在以下情况单独发送步骤 7 口令：
 
 - 末尾阶段未使用 MCP（需补 validate）
 - 末尾阶段由不同会话/人员执行，需独立确认
@@ -113,6 +114,7 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 2. `progress.md` 追加（含执行结果 **与** Spec 对照结论，合并闭环时一条写完）
 3. 若含 `SpecRef:`：对照 Spec 验收项勾选（合并闭环时在实施收尾一并完成）
 4. 偏差 → `findings.md`
+5. 若进入实施：Spec 状态应为 `in-progress`；收尾交付：Spec 状态应为 `complete`（`archived` 为独立终态，不纳入主流程）
 
 hooks 会自动输出 SpecRef 提醒，Agent 须遵从；合并闭环（单次会话实施+自检）即满足门禁，无需为验收再开一轮对话（除非步骤 4a）。
 
