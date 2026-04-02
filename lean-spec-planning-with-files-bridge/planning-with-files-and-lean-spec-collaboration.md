@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 09:59:54
-LatestChange: 用语对齐合并技能 lean-spec-planning-with-files-bridge；移除对已删除目录 planning-with-files-ext / bridge 的路径依赖表述。
+UpdatedAt: 2026-04-02 11:22:46 +0800
+LatestChange: 五步工作流「阶段完成」补充末尾阶段双轨收尾（与 README 步骤 6 合并、不另开会话）。
 -->
 
 # planning-with-files-zh + lean-spec-planning-with-files-bridge + LeanSpec 协作文档
@@ -80,7 +80,8 @@ your-project/
 
 5. **阶段完成**  
    对照 LeanSpec 中的验收项自检；更新 **effective** `task_plan.md` 状态与 `progress.md`；若验收或范围变化，**更新 Spec** 并记下变更说明（可在 `findings.md` 留一条「规格变更记录」摘要）。  
-   合并闭环时，`progress.md` 单条条目须同时包含执行结果与 Spec 对照结论；无偏差时不开独立自检会话。
+   合并闭环时，`progress.md` 单条条目须同时包含执行结果与 Spec 对照结论；无偏差时不开独立自检会话。  
+   最后一个阶段的完成还包括**双轨收尾**：Spec 终态标记（MCP `update` 或文件修改）、`validate`、执行轨与规格轨一致性简述——与 `lean-spec-planning-with-files-bridge/README.md` **步骤 6** 合并执行，不另开会话。
 
 ---
 

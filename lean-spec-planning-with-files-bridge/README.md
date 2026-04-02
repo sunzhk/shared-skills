@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 09:59:54
-LatestChange: 协作文档与 shared-skills 总纲同步：shared-skills 内原 ext/bridge 目录已删除，仅保留本合并技能。
+UpdatedAt: 2026-04-02 11:22:46 +0800
+LatestChange: 双轨收尾简化：步骤 6 与 task_plan 末尾阶段默认合并；补充收尾合并说明段落。
 -->
 
 # lean-spec-planning-with-files-bridge
@@ -93,7 +93,13 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 | 4. 实施+验收阶段 1（默认） | 单次会话完成实施、Spec 自检与三文件更新 | `当前 effective 计划是 <plan-id>。请执行 task_plan.md 中的阶段 1；工具编辑后更新 progress.md；阶段收尾时对照 SpecRef/MCP view 中与本阶段相关的验收项自检，无偏差则一次性更新 progress（含执行结果与 Spec 对照结论）和 task_plan 阶段状态；不要重复已做过的 grep/compile（除非源码或 Spec 有变更）。勿把长原文贴进 task_plan.md。` |
 | 4a. 独立验收（可选） | 仅在有偏差/需独立签认时使用 | `阶段 1 存在偏差，请单独对照 Spec 验收项自检；以 Spec 条款 checklist 为主，不重复已做过的静态检索与构建；偏差先记 findings.md 再修正。` |
 | 5. 重复 4～4a | 直到所有阶段完成 | 将提示词里的「阶段 1 / 阶段 2」依次数递增；默认用步骤 4 的合并闭环提示词，仅在需要时用 4a。 |
-| 6. 收尾 | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 标为合适终态（如 complete）、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
+| 6. 收尾（通常与末尾阶段合并） | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 标为合适终态（如 complete）、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
+
+**收尾合并**：步骤 6 的操作通常在 `task_plan.md` 最后一个阶段（默认阶段 5）中一并完成。仅在以下情况单独发送步骤 6 口令：
+
+- 末尾阶段未使用 MCP（需补 validate）
+- 末尾阶段由不同会话/人员执行，需独立确认
+- Spec 终态需审批后再标记
 
 **说明**：`validate` / MCP 校验的是 **Spec 与项目约定**；**业务是否满足验收**仍依赖测试与你的审查。
 

@@ -12,8 +12,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-04-02 09:59:54
-LatestChange: 描述字段去掉已删除技能名 planning-with-files-ext；执行轨用语与合并技能一致。
+UpdatedAt: 2026-04-02 11:22:46 +0800
+LatestChange: 代理流程「收尾」与 task_plan 末尾阶段 DoD 默认合并；补充双轨收尾执行说明。
 -->
 
 # lean-spec-planning-with-files-bridge（一体化双轨协作技能）
@@ -146,7 +146,9 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
    - 在 `task_plan.md` 中把 LeanSpec 的验收项**映射**为 Phase/检查项（复制摘要即可，验收原文仍以 spec 为准）；若已配置 MCP，拉取验收段落时优先 `view`。
    - 大块调研与外部原文只写入 `findings.md`。
 
-6. **收尾**
+6. **收尾（默认合并到末尾阶段的 DoD）**
+   - 若 `task_plan` 末尾阶段含双轨收尾子项，Agent 在该阶段 DoD 中一并完成：Spec 终态（MCP `update` 或文件修改）、`validate`、一致性简述。
+   - 仅在末尾阶段未涵盖 MCP 操作或需独立确认时，作为单独步骤执行。
    - 提醒用户可选用：`lean-spec board`、`lean-spec ui`；已配置 MCP 时可用 MCP 的 `board` / `stats`。
 
 ## 阶段完成定义（DoD）

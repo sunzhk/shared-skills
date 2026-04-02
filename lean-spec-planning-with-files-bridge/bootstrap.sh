@@ -606,10 +606,11 @@ if [[ ! -f "${TASK_PLAN_FILE}" ]]; then
 - [ ] 将测试结果记录到 progress.md
 - **Status:** pending
 
-### 阶段 5：交付与总结
+### 阶段 5：交付与收尾
 
 - [ ] 确认交付物完整可用
 - [ ] 输出结果与后续建议
+- [ ] 双轨收尾（与 README 步骤 6 合并执行）：Spec 终态 + validate + progress/task_plan 闭合 + 一致性简述
 - **Status:** pending
 
 ## 决策记录
