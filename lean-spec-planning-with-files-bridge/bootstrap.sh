@@ -3,6 +3,8 @@
 # 合并自 planning-with-files-ext/bootstrap.sh + planning-with-files-lean-spec-bridge/bootstrap-bridge.sh
 # 产物：.cursor/rules、hooks.json、hooks/*.sh、doc/plans/ 脚本、COORDINATION_LEANSPEC.md
 # hooks 加强：SpecRef 感知——若 task_plan.md 含 SpecRef: 行，hook 输出额外提醒对照规格验收。
+# UpdatedAt: 2026-04-02 09:50:41
+# LatestChange: 基于 002-A9-3 复盘结论，hook 与 .mdc 中 SpecRef 提醒文案差异化；合并闭环视为满足门禁。
 
 set -euo pipefail
 
@@ -249,7 +251,7 @@ cp "${HOOKS_JSON_WANT}" "${HOOKS_JSON_DEST}"
 cat > "${RULES_DIR}/planning-with-files.mdc" <<EOF
 <!--
 UpdatedAt: ${NOW}
-LatestChange: 合并为 lean-spec-planning-with-files-bridge 一体化双轨协作规则；增加 SpecRef 感知说明。
+LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认阶段关门策略；SpecRef 规则补充合并闭环说明。
 -->
 
 # Planning workflow (file-based, dual-track)
@@ -270,7 +272,7 @@ LatestChange: 合并为 lean-spec-planning-with-files-bridge 一体化双轨协�
 ## 双轨协作（SpecRef）
 
 - 凡创建新计划，同时建立 \`specs/\` 下对应规格与 \`doc/plans/\` 下执行计划，在 \`task_plan.md\` **顶部**写 \`SpecRef: specs/.../README.md\`，在 Spec 内写 \`ExecutionPlan: doc/plans/<plan-id>/\`。
-- hooks 检测 \`SpecRef:\`：存在时输出额外提醒对照规格验收项；阶段完成时须自检。
+- hooks 检测 \`SpecRef:\`：存在时输出额外提醒对照规格验收项。合并闭环（单次会话完成实施+自检）仍视为满足门禁，无需第二次会话单独验收。
 
 ## 父计划 + 子计划（总纲与子目录）
 
@@ -403,7 +405,7 @@ if [ -f "${PLAN_FILE}" ]; then
   # SpecRef 感知：若 task_plan.md 含 SpecRef，额外提醒对照规格验收
   SPEC_REF="$(grep -m1 '^SpecRef:' "${PLAN_FILE}" 2>/dev/null | sed 's/^SpecRef:[[:space:]]*//' || true)"
   if [ -n "${SPEC_REF}" ]; then
-    echo "[planning-with-files] SpecRef: ${SPEC_REF} — 执行前对照规格验收项；阶段完成时须自检。"
+    echo "[planning-with-files] SpecRef: ${SPEC_REF} — 决策与实现须对照规格，勿偏离验收项。"
   fi
 fi
 exit 0
@@ -445,7 +447,7 @@ EOF
 cat > "${HOOKS_DIR}/post-tool-use.sh" <<'EOF'
 #!/bin/bash
 # lean-spec-planning-with-files-bridge: Post-tool-use hook for Cursor
-# SpecRef-aware: 若含 SpecRef，额外提醒阶段完成时对照 Spec 验收。
+# SpecRef-aware: 含 SpecRef 时提醒本回合有编辑则阶段关门须对照 Spec 后再标 complete。
 
 set -euo pipefail
 
@@ -476,7 +478,7 @@ if [ -f "${PLAN_FILE}" ]; then
   # SpecRef 感知
   SPEC_REF="$(grep -m1 '^SpecRef:' "${PLAN_FILE}" 2>/dev/null | sed 's/^SpecRef:[[:space:]]*//' || true)"
   if [ -n "${SPEC_REF}" ]; then
-    echo "[planning-with-files] 含 SpecRef — 若阶段完成，先对照 Spec 验收项自检再标 complete。" >&2
+    echo "[planning-with-files] 含 SpecRef — 本回合有编辑，阶段关门时须对照 Spec 验收项后再标 complete。" >&2
   fi
 fi
 exit 0
@@ -486,7 +488,7 @@ EOF
 cat > "${HOOKS_DIR}/stop.sh" <<'EOF'
 #!/bin/bash
 # lean-spec-planning-with-files-bridge: Stop hook for Cursor
-# SpecRef-aware: 全部完成时若含 SpecRef，提醒对照规格做全量验收。
+# SpecRef-aware: 若含 SpecRef，followup 中追加停前确认 DoD（含 SpecRef 对照）与 Spec 状态。
 
 set -euo pipefail
 
@@ -529,7 +531,7 @@ REL_PROGRESS="doc/plans/${EFFECTIVE_SUBPATH}/progress.md"
 SPEC_REF="$(grep -m1 '^SpecRef:' "${PLAN_FILE}" 2>/dev/null | sed 's/^SpecRef:[[:space:]]*//' || true)"
 SPEC_SUFFIX=""
 if [ -n "${SPEC_REF}" ]; then
-  SPEC_SUFFIX=" 若含 SpecRef: 对照规格做全量验收，更新 Spec 状态。"
+  SPEC_SUFFIX=" 停前确认 DoD 已满足（含 SpecRef 对照），并更新 Spec 状态。"
 fi
 
 if [ "${COMPLETE}" -eq "${TOTAL}" ] && [ "${TOTAL}" -gt 0 ]; then

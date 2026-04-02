@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-01 15:08:55
-LatestChange: 迁移至 lean-spec-planning-with-files-bridge（合并后的一体化双轨技能目录）；更新内部路径引用。
+UpdatedAt: 2026-04-02 09:50:41
+LatestChange: 阶段完成段落补充合并闭环模板句（progress 单条含执行与 Spec 对照；无偏差不开独立自检会话）。
 -->
 
 # planning-with-files-zh + planning-with-files-ext + LeanSpec 协作文档
@@ -79,7 +79,8 @@ your-project/
    - 同一问题多次失败：按技能中的「三次失败协议」处理并记入 `progress.md` / 错误表。
 
 5. **阶段完成**  
-   对照 LeanSpec 中的验收项自检；更新 **effective** `task_plan.md` 状态与 `progress.md`；若验收或范围变化，**更新 Spec** 并记下变更说明（可在 `findings.md` 留一条「规格变更记录」摘要）。
+   对照 LeanSpec 中的验收项自检；更新 **effective** `task_plan.md` 状态与 `progress.md`；若验收或范围变化，**更新 Spec** 并记下变更说明（可在 `findings.md` 留一条「规格变更记录」摘要）。  
+   合并闭环时，`progress.md` 单条条目须同时包含执行结果与 Spec 对照结论；无偏差时不开独立自检会话。
 
 ---
 

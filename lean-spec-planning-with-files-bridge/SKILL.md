@@ -12,8 +12,8 @@ description: >
 ---
 
 <!--
-UpdatedAt: 2026-04-01 15:08:55
-LatestChange: 合并 planning-with-files-ext 与 planning-with-files-lean-spec-bridge 为一体化双轨技能；强制双轨模式；新增 DoD、MCP 工具时机表、SpecRef 感知 hooks。
+UpdatedAt: 2026-04-02 09:50:41
+LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认阶段关门策略；新增「阶段闭环策略」、DoD 第 3 条细化、MCP 与 DoD 分工说明；行为要点补充 SpecRef hook 语义区分说明。
 -->
 
 # lean-spec-planning-with-files-bridge（一体化双轨协作技能）
@@ -65,6 +65,8 @@ LatestChange: 合并 planning-with-files-ext 与 planning-with-files-lean-spec-b
 | 阶段完成后 | `update` | 反映规格状态（如 `in_progress` → `complete`） |
 | 里程碑 / 合并前 | `validate` | 结构与质量校验 |
 | 收尾 | `board`、`stats` | 与 `progress.md` 对照完成度 |
+
+> **与 DoD 的关系**：MCP 表回答「何时用哪个工具」；DoD 回答「阶段关门必须做哪些检查」。两者互补，不要叠加成两套「阶段完成」心智模型。
 
 **与执行轨的边界**：**`doc/plans/<plan-id>/`** 下的三文件仍只通过**读写文件 + hooks** 维护；MCP **不**替代执行轨，也**不**用 MCP 整文件覆盖同步 `task_plan.md`。
 
@@ -155,16 +157,23 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
 |---|--------|------|
 | 1 | `task_plan.md` 当前 Phase 状态已改为 `complete` | 更新状态标记 |
 | 2 | `progress.md` 已记录本阶段完成时间与关键产出 | 追加日志 |
-| 3 | 若 `task_plan.md` 含 `SpecRef:`，已对照 Spec 中对应验收项自检 | 读取 Spec（MCP `view` 或文件），逐条确认 |
+| 3 | 若 `task_plan.md` 含 `SpecRef:`，已对照 Spec 中对应验收项自检 | 合并闭环时：一次精读验收要点后在本阶段收尾勾选，而非与实施割裂为第二次全文重读（除非发现不一致或 Spec 有变更） |
 | 4 | 若自检发现偏差，已在 `findings.md` 记录并修正 | 写 findings + 修正代码/文档 |
 | 5 | 下一 Phase 状态标记为 `in_progress`（若有） | 更新状态标记 |
+
+### 阶段闭环策略（推荐）
+
+- **默认：合并闭环** — 单次会话完成「实施 + Spec 对照自检 + 三文件更新」；不要刻意拆成「先执行再来自检」两次对话。
+- **仅在以下情况使用独立自检会话**：存在偏差需修正 / 需求边界有争议 / 需要独立签认（如人工审查后再让 Agent 做 Spec checklist）。独立自检以 **Spec 条款 checklist** 为主，**不默认重复**已做过的静态检索与构建（除非源码或 Spec 在此期间发生了变更）。
+- **findings 去重**：同一阶段优先使用**一张表两列**格式（证据列 / Spec 条款对照列），避免「实施摘要」与「自检表」各写一段重复证据。
+- **progress 去重**：合并闭环时，`progress.md` 单条条目须**同时包含**执行结果与 Spec 对照结论，而非分两条记录。
 
 ## 代理在规划任务中的行为要点
 
 - 复杂任务开始前：确保 **effective** 目录下存在三文件，并正确设置 **`doc/plans/ACTIVE`**。
 - 不要把不可信外部原文大块写入 `task_plan.md`；证据与摘录放 **`findings.md`**。
 - 工具写入/编辑后：按规则与 post-hook 提示更新 **`progress.md`** 与阶段状态。
-- **SpecRef 感知**：hooks 会检测 `task_plan.md` 中的 `SpecRef:` 行；若存在，hook 输出会额外提醒 Agent 对照规格验收项。
+- **SpecRef 感知**：hooks 会检测 `task_plan.md` 中的 `SpecRef:` 行；若存在，会在 user-prompt / post-tool / stop 等处输出**语义区分**的提醒（决策对齐、编辑后关门、停前 DoD），合并闭环仍视为满足门禁。
 
 ## 明确不做的事（避免增加心智负担以外的风险）
 

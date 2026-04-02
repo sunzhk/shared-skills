@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-01 15:08:55
-LatestChange: 合并 planning-with-files-ext 与 planning-with-files-lean-spec-bridge 为一体化双轨技能；新增阶段验收检查单与常见偏差修正。
+UpdatedAt: 2026-04-02 09:50:41
+LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认提示词路径；阶段验收改为速查引用；常见偏差增「双会话重复」一行。
 -->
 
 # lean-spec-planning-with-files-bridge
@@ -9,7 +9,7 @@ LatestChange: 合并 planning-with-files-ext 与 planning-with-files-lean-spec-b
 
 ## 目录内容
 
-- `SKILL.md`：**Cursor Agent 技能**入口（双轨标准流程、DoD、MCP 工具时机表、与 `planning-with-files-zh` 的关系）。
+- `SKILL.md`：**Cursor Agent 技能**入口（双轨标准流程、DoD、阶段闭环策略、MCP 工具时机表、与 `planning-with-files-zh` 的关系）。
 - `bootstrap.sh`：一键把模板写入目标项目（含 hooks、rules、脚本、协作文档）。
 - `planning-with-files-and-lean-spec-collaboration.md`：权威协作文档（bootstrap 会复制到 `doc/plans/COORDINATION_LEANSPEC.md`）。
 - `README.md`：本文件——人类可读的目录说明、安装方式、MCP 配置与双轨使用流程。
@@ -81,7 +81,7 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 
 ## 双轨模式使用流程（提示词示例）
 
-下面按「**创建计划 → 审阅 → 切换计划 → 分阶段实施 → 阶段验收 → 收尾**」给出可直接改写的提示词；将占位符换成你的功能名与 `plan-id`（如 `feat-auth`，须符合路径规则）。
+下面按「**创建计划 → 审阅 → 切换计划 → 分阶段实施与阶段验收（默认合并闭环）→ 收尾**」给出可直接改写的提示词；将占位符换成你的功能名与 `plan-id`（如 `feat-auth`，须符合路径规则）。
 
 **前提（一次性）**：目标仓库已执行本技能的 `bootstrap.sh`（存在 `doc/plans/plan.sh`、`ACTIVE` 等）；已按上文配置 **LeanSpec MCP**（推荐）；仓库已有或可创建 **`specs/`**。
 
@@ -90,26 +90,25 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 | 1. 开双轨 | 一次性建立 Spec + 执行计划 + 双向引用 + 阶段骨架 | `按双轨协作为「<功能简述>」开需求：plan-id 用 <plan-id>。请先通过 LeanSpec MCP 做 search/list 避免重复 spec；再建或对齐 specs/ 下对应 README（含目标、场景、验收、非目标，frontmatter 含 created: YYYY-MM-DD）；再执行 ./doc/plans/plan.sh new <plan-id>；在 effective 的 task_plan.md 顶部写 SpecRef，在 Spec 里写 ExecutionPlan；把验收项映射成若干 Phase，调研长文只进 findings.md。` |
 | 2. 审计划 | 你打开 `doc/plans/<plan-id>/task_plan.md` 与对应 Spec，改到满意 | （自行编辑保存，无需固定句式。） |
 | 3. 切换当前计划 | 让执行轨对准本次目录 | `[计划: <plan-id>]` 或：`将 ACTIVE 设为 <plan-id>，我要在该计划上工作。` |
-| 4. 实施阶段 1 | Agent 按 `task_plan.md` 做阶段 1 | `当前 effective 计划是 <plan-id>。请执行 task_plan.md 中的阶段 1；工具编辑后更新 progress.md；需要对照验收时通过 SpecRef 或 LeanSpec MCP view 读取 spec，勿把长原文贴进 task_plan.md。` |
-| 5. 阶段验收与推进 | 对照 Spec 验收 + 审查实现，再进入下一阶段 | `阶段 1 的开发工作已按你的理解完成。请对照 Spec 中与阶段 1 相关的验收项做自检，更新 progress.md 与 task_plan 中阶段状态；若通过，准备执行阶段 2。若有偏差，先在 findings.md 记一笔再改 spec 或计划。` |
-| 6. 重复 4～5 | 直到所有阶段完成 | 将提示词里的「阶段 1 / 阶段 2」依次数递增。 |
-| 7. 收尾 | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 标为合适终态（如 complete）、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
+| 4. 实施+验收阶段 1（默认） | 单次会话完成实施、Spec 自检与三文件更新 | `当前 effective 计划是 <plan-id>。请执行 task_plan.md 中的阶段 1；工具编辑后更新 progress.md；阶段收尾时对照 SpecRef/MCP view 中与本阶段相关的验收项自检，无偏差则一次性更新 progress（含执行结果与 Spec 对照结论）和 task_plan 阶段状态；不要重复已做过的 grep/compile（除非源码或 Spec 有变更）。勿把长原文贴进 task_plan.md。` |
+| 4a. 独立验收（可选） | 仅在有偏差/需独立签认时使用 | `阶段 1 存在偏差，请单独对照 Spec 验收项自检；以 Spec 条款 checklist 为主，不重复已做过的静态检索与构建；偏差先记 findings.md 再修正。` |
+| 5. 重复 4～4a | 直到所有阶段完成 | 将提示词里的「阶段 1 / 阶段 2」依次数递增；默认用步骤 4 的合并闭环提示词，仅在需要时用 4a。 |
+| 6. 收尾 | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 标为合适终态（如 complete）、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
 
 **说明**：`validate` / MCP 校验的是 **Spec 与项目约定**；**业务是否满足验收**仍依赖测试与你的审查。
 
 ---
 
-## 阶段验收检查单
+## 阶段验收速查
 
-每个阶段完成时，Agent 按 DoD（Definition of Done）依次执行：
+完整 DoD 见 `SKILL.md`「阶段完成定义（DoD）」。速记：
 
-| # | 检查项 | 怎么做 |
-|---|--------|--------|
-| 1 | `task_plan.md` 状态标记 | 当前 Phase → `complete`，下一 Phase → `in_progress` |
-| 2 | `progress.md` 日志 | 追加完成时间、关键产出、影响文件 |
-| 3 | SpecRef 自检 | 若含 `SpecRef:`，读取 Spec 对应验收项逐条确认 |
-| 4 | 偏差处理 | 若发现偏差，记 `findings.md` 并修正 |
-| 5 | Hook 提示响应 | hooks 会自动输出 SpecRef 提醒，Agent 需遵从 |
+1. `task_plan.md` 阶段状态 → `complete`
+2. `progress.md` 追加（含执行结果 **与** Spec 对照结论，合并闭环时一条写完）
+3. 若含 `SpecRef:`：对照 Spec 验收项勾选（合并闭环时在实施收尾一并完成）
+4. 偏差 → `findings.md`
+
+hooks 会自动输出 SpecRef 提醒，Agent 须遵从；合并闭环（单次会话实施+自检）即满足门禁，无需为验收再开一轮对话（除非步骤 4a）。
 
 ---
 
@@ -122,6 +121,7 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 | 阶段完成但未对照 Spec 验收 | Hook 提醒被忽略 | 显式要求「对照 Spec 验收项自检」 |
 | 外部长原文被塞进 `task_plan.md` | 违反安全边界 | 移到 `findings.md`，`task_plan.md` 只留摘要 |
 | MCP 调用失败 | 配置问题 | 核对 `.mcp.json`、`npx` 可用性、`specs/` 位置 |
+| 执行与验收分两次会话，导致重复 grep/compile/progress | 沿用旧提示词 | 使用合并闭环提示词（步骤 4）；仅在偏差时用独立验收（步骤 4a） |
 
 ---
 
