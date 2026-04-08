@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 09:59:54
-LatestChange: 删除已合并废弃目录 planning-with-files-ext、planning-with-files-lean-spec-bridge；configure-from-readme 仅保留一体化 bootstrap 路径。
+UpdatedAt: 2026-04-08 16:50:03 +0800
+LatestChange: 新增 open-spec-cn 技能，提供 OpenSpec 中文规范约束与 -cn 命令包装安装脚本。
 -->
 
 # shared-skills 总纲
@@ -44,6 +44,7 @@ cursor_skill_links=lean-spec-planning-with-files-bridge,eng-practices,code-style
 - 评审技能入口：`eng-practices/SKILL.md`
 - 单元测试规范（主控 router）：`unit-test-guide-skills/unit-test-router/SKILL.md`（说明见 `unit-test-guide-skills/README.md`）
 - 一体化双轨协作（规格 + 执行 + hooks）：`lean-spec-planning-with-files-bridge/SKILL.md`（包内说明见 `lean-spec-planning-with-files-bridge/README.md`）
+- OpenSpec 中文规范与命令包装：`open-spec-cn/SKILL.md`
 
 ## 当前技能目录
 
@@ -60,6 +61,9 @@ cursor_skill_links=lean-spec-planning-with-files-bridge,eng-practices,code-style
 - `lean-spec-planning-with-files-bridge/`（一体化双轨协作）
   - 入口：`lean-spec-planning-with-files-bridge/SKILL.md`（**双轨协作**：规格轨 `specs/` + 执行轨 `doc/plans/` + SpecRef 感知 hooks）
   - 包说明：`lean-spec-planning-with-files-bridge/README.md`（含 `bootstrap.sh` 一键写入全部产物）
+- `open-spec-cn/`
+  - 入口：`open-spec-cn/SKILL.md`
+  - 脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`（安装 `openspec-*-cn` 包装命令）
 - `configure-from-readme.sh`（仓库根）：先读**本文档**内 `<!-- shared-skills-config -->` 默认块（含预置 `cursor_skill_links`），再合并业务项目 `README.md` 中的同名块（可省略）；自动执行 bootstrap、**解析并校验**技能路径、**写入业务项目 `AGENTS.md`**（路径指向 `.cursor/shared-skills/...`）
 
 ## 路由说明

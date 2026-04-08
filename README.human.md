@@ -1,6 +1,8 @@
-
-
 # shared-skills（给人看的说明）
+<!--
+UpdatedAt: 2026-04-08 16:50:03 +0800
+LatestChange: 新增 open-spec-cn 技能说明，支持 OpenSpec 中文规范与 openspec-*-cn 命令包装。
+-->
 
 本文档面向开发者与项目维护者，重点回答：
 
@@ -37,6 +39,13 @@
 - 典型场景：初始化规划目录并同时建立规格轨、安装 planning hooks、多计划 `ACTIVE` 指针、**双轨协作**（`specs/` + `doc/plans/` + `SpecRef`/`ExecutionPlan`）。口令建议用 **「按双轨」**、**「双轨开需求」** 或技能全名。
 - 入口 skill：`lean-spec-planning-with-files-bridge/SKILL.md`；人类操作说明见同目录 `README.md`（`bootstrap.sh`）。
 - 权威协作文档：`lean-spec-planning-with-files-bridge/planning-with-files-and-lean-spec-collaboration.md`（bootstrap 复制到 `doc/plans/COORDINATION_LEANSPEC.md`）。
+
+### `open-spec-cn/`
+
+- 用途：统一 OpenSpec 中文规范写作与归档校验约束。
+- 典型场景：避免 Requirement 缺少 `MUST/SHALL`、避免 `Purpose` 留 `TBD`、希望给 openspec 命令统一套 `-cn` 包装。
+- 入口 skill：`open-spec-cn/SKILL.md`。
+- 命令安装脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`（安装 `openspec-*-cn`）。
 
 ## LeanSpec 安装与初始化（须自行完成）
 
