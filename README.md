@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-08 16:50:03 +0800
-LatestChange: 新增 open-spec-cn 技能，提供 OpenSpec 中文规范约束与 -cn 命令包装安装脚本。
+UpdatedAt: 2026-04-08 17:23:08 +0800
+LatestChange: open-spec-cn 调整为仅初始化 /opsx-*-cn slash 命令，不再安装 openspec-*-cn 终端包装命令。
 -->
 
 # shared-skills 总纲
@@ -44,7 +44,7 @@ cursor_skill_links=lean-spec-planning-with-files-bridge,eng-practices,code-style
 - 评审技能入口：`eng-practices/SKILL.md`
 - 单元测试规范（主控 router）：`unit-test-guide-skills/unit-test-router/SKILL.md`（说明见 `unit-test-guide-skills/README.md`）
 - 一体化双轨协作（规格 + 执行 + hooks）：`lean-spec-planning-with-files-bridge/SKILL.md`（包内说明见 `lean-spec-planning-with-files-bridge/README.md`）
-- OpenSpec 中文规范与命令包装：`open-spec-cn/SKILL.md`
+- OpenSpec 中文规范与 Slash 命令初始化：`open-spec-cn/SKILL.md`
 
 ## 当前技能目录
 
@@ -63,7 +63,7 @@ cursor_skill_links=lean-spec-planning-with-files-bridge,eng-practices,code-style
   - 包说明：`lean-spec-planning-with-files-bridge/README.md`（含 `bootstrap.sh` 一键写入全部产物）
 - `open-spec-cn/`
   - 入口：`open-spec-cn/SKILL.md`
-  - 脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`（安装 `openspec-*-cn` 包装命令）
+  - 脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`（批量生成 `/opsx-*-cn` 命令文件）
 - `configure-from-readme.sh`（仓库根）：先读**本文档**内 `<!-- shared-skills-config -->` 默认块（含预置 `cursor_skill_links`），再合并业务项目 `README.md` 中的同名块（可省略）；自动执行 bootstrap、**解析并校验**技能路径、**写入业务项目 `AGENTS.md`**（路径指向 `.cursor/shared-skills/...`）
 
 ## 路由说明

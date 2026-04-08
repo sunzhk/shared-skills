@@ -1,7 +1,7 @@
 # shared-skills（给人看的说明）
 <!--
-UpdatedAt: 2026-04-08 16:50:03 +0800
-LatestChange: 新增 open-spec-cn 技能说明，支持 OpenSpec 中文规范与 openspec-*-cn 命令包装。
+UpdatedAt: 2026-04-08 17:23:08 +0800
+LatestChange: open-spec-cn 技能说明更新为仅初始化 /opsx-*-cn slash 命令，不再安装 openspec-*-cn 终端包装。
 -->
 
 本文档面向开发者与项目维护者，重点回答：
@@ -43,9 +43,9 @@ LatestChange: 新增 open-spec-cn 技能说明，支持 OpenSpec 中文规范与
 ### `open-spec-cn/`
 
 - 用途：统一 OpenSpec 中文规范写作与归档校验约束。
-- 典型场景：避免 Requirement 缺少 `MUST/SHALL`、避免 `Purpose` 留 `TBD`、希望给 openspec 命令统一套 `-cn` 包装。
+- 典型场景：避免 Requirement 缺少 `MUST/SHALL`、避免 `Purpose` 留 `TBD`、希望批量生成 `/opsx-*-cn` 命令。
 - 入口 skill：`open-spec-cn/SKILL.md`。
-- 命令安装脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`（安装 `openspec-*-cn`）。
+- 命令初始化脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`（批量生成 `/opsx-*-cn`）。
 
 ## LeanSpec 安装与初始化（须自行完成）
 

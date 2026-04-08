@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-08 16:50:03 +0800
-LatestChange: 新增 open-spec-cn 技能，统一 OpenSpec 中文规范写作与 -cn 命令包装流程。
+UpdatedAt: 2026-04-08 17:20:29 +0800
+LatestChange: 初始化脚本升级为自动为全部 opsx 命令生成 -cn 版本，不再只生成 opsx-onboard-cn。
 -->
 
 # open-spec-cn
@@ -49,32 +49,40 @@ rg "MUST|SHALL" openspec/changes/<change>/specs
 rg "TBD - created by archiving|^TBD$" openspec/specs
 ```
 
-## 命令包装（-cn）
+## Slash 命令初始化
 
-本技能提供 `scripts/install-open-spec-cn.sh`，会在 `~/.local/bin` 下生成 `openspec` 顶层命令对应的 `-cn` 包装命令（例如 `openspec-archive-cn`、`openspec-validate-cn`）。
+本技能提供 `scripts/install-open-spec-cn.sh`，仅负责在项目内生成 Slash 命令文件：
 
-包装命令执行逻辑：
+- 自动扫描 `<project-root>/.cursor/commands/opsx-*.md`（排除已带 `-cn` 的文件）。
+- 为每个命令生成对应 `<name>-cn.md`（例如 `opsx-new.md` -> `opsx-new-cn.md`）。
 
-1. 调用 `scripts/openspec-cn-run.sh`。
-2. 在关键写操作（如 `archive`）前后触发 `scripts/openspec-cn-guard.sh` 校验。
-3. 再调用原生 `openspec` 命令。
+## 命名约定（重要）
+
+本技能区分两类命令命名：
+
+- **Cursor Slash 命令**：统一使用 `/opsx-<action>-cn`（例如 `/opsx-onboard-cn`）。
+- **终端命令**：继续使用标准 `openspec <action>`，不额外创建 `-cn` 包装。
+
+不要使用 `/openspec-<action>-cn` 作为 Slash 命令名，避免与现有 OpenSpec 命令体系不一致。
 
 ## 安装与使用
 
-### 安装命令包装
+### 初始化（仅 Slash 命令）
 
 ```bash
-bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh
+bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [project-root]
 ```
 
-若 `~/.local/bin` 未在 PATH，请自行加入 shell 配置。
+初始化动作包含两部分：
+
+- 在 `<project-root>/.cursor/commands/` 自动生成全部 `/opsx-*-cn` 命令文件（默认 `<project-root>` 为当前目录）。
 
 ### 使用示例
 
 ```bash
-openspec-new-cn change "improve-xxx"
-openspec-instructions-cn proposal --change "improve-xxx" --json
-openspec-archive-cn "improve-xxx"
+openspec new change "improve-xxx"
+openspec instructions proposal --change "improve-xxx" --json
+openspec archive "improve-xxx" --no-interactive
 ```
 
 ## 输出要求（给 Agent）

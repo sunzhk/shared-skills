@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-08 16:50:03 +0800
-LatestChange: 新增 open-spec-cn 路由与执行规则，用于 OpenSpec 中文规范与 -cn 命令包装。
+UpdatedAt: 2026-04-08 17:23:08 +0800
+LatestChange: open-spec-cn 路由更新为仅生成 /opsx-*-cn slash 命令，不再涉及 openspec-*-cn 终端包装。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -108,7 +108,7 @@ bash .cursor/shared-skills/configure-from-readme.sh
 - 单元测试规范（主控）：`unit-test-guide-skills/unit-test-router/SKILL.md`
 - 单元测试三端子技能：`unit-test-guide-skills/unit-test-android/SKILL.md`、`unit-test-ios`、`unit-test-wechat-miniprogram`
 - 一体化双轨协作（规格轨 + 执行轨 + hooks）：`lean-spec-planning-with-files-bridge/SKILL.md`（含 `bootstrap.sh`、与 `planning-with-files-zh` 方法论对齐）
-- OpenSpec 中文规范与命令包装：`open-spec-cn/SKILL.md`
+- OpenSpec 中文规范与 Slash 命令初始化：`open-spec-cn/SKILL.md`
 - **README 一键配置**：仓库根 `configure-from-readme.sh`（默认块在 shared-skills `README.md`，业务 README 可选覆盖；详见 `README.human.md`）
 
 需要深读时可读取：
@@ -209,7 +209,7 @@ bash .cursor/shared-skills/configure-from-readme.sh
 | “LeanSpec 和 doc/plans 联动” / “**按双轨**开需求” / “**双轨协作**” | `lean-spec-planning-with-files-bridge` | 按 §0.5 检测 LeanSpec CLI / npx，未就绪则提示用户参阅 `README.human.md`；再按技能清单建 SpecRef / ExecutionPlan。 |
 | “帮我配置 shared-skills / 初始化技能入口” | §0 冷启动流程 | 检测 submodule → 检测 README 配置块 → 执行脚本 → 写 AGENTS.md。 |
 | “这个项目还没配置 shared-skills” | §0 冷启动流程 | 同上，Agent 可主动检测并提议执行。 |
-| “OpenSpec 要中文可读且可归档校验” / “给 openspec 套 -cn 命令” | `open-spec-cn` | 读取 `open-spec-cn/SKILL.md`，按其脚本安装与校验流程执行。 |
+| “OpenSpec 要中文可读且可归档校验” / “生成 `/opsx-*-cn` 命令” | `open-spec-cn` | 读取 `open-spec-cn/SKILL.md`，执行初始化脚本批量生成 cn 版 slash 命令。 |
 
 ## 4. 冲突优先级
 
