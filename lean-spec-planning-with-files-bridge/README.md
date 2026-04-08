@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 17:34:47 +0800
-LatestChange: 调整「双轨模式使用流程」步骤顺序：明确 ACTIVE 早于审计划，并将 planned/in-progress 作为清晰关口。
+UpdatedAt: 2026-04-03 17:26:18 +0800
+LatestChange: 继续精简双轨流程其余步骤提示词为意图式短句（2/4/5/6/6a/8），将具体执行细节统一收敛到 SKILL.md 标准流程。
 -->
 
 # lean-spec-planning-with-files-bridge
@@ -41,7 +41,7 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 
 - `.cursor/rules/planning-with-files.mdc`
 - `.cursor/hooks.json` 与 `.cursor/hooks/*.sh`（含 SpecRef 感知）
-- `doc/plans/new-plan.sh`、`doc/plans/plan.sh`、`doc/plans/planning-paths.sh`
+- `doc/plans/new-plan.sh`、`doc/plans/plan.sh`、`doc/plans/planning-paths.sh`（`plan.sh` 支持 `new-numbered` / `next-numbered-id`，按顶层 `^数字-` 目录取最大编号 +1）
 - `doc/plans/COORDINATION_LEANSPEC.md`（协作文档副本）
 - （可选）`.cursor/skills/planning-with-files-zh/SKILL.md`
 
@@ -81,21 +81,23 @@ bash /path/to/lean-spec-planning-with-files-bridge/bootstrap.sh /path/to/target/
 
 ## 双轨模式使用流程（提示词示例）
 
-下面按「**开双轨（draft）→ 切换当前计划（ACTIVE）→ 审计划 → 计划审查通过（planned）→ 启动实施（in-progress）→ 分阶段实施与阶段验收（默认合并闭环）→ 收尾**」给出可直接改写的提示词；将占位符换成你的功能名与 `plan-id`（如 `feat-auth`，须符合路径规则）。
+下面按「**开双轨（draft）→ 切换当前计划（ACTIVE）→ 审计划 → 计划审查通过（planned）→ 启动实施（in-progress）→ 分阶段实施与阶段验收（默认合并闭环）→ 收尾**」给出可直接改写的提示词；将占位符替换为你的功能描述、`plan-id` 与阶段号即可。
+
+**第 1 步（推荐极简）**：只写功能即可，不必粘贴 `plan.sh` 命令；Agent 应 **读本仓库/本机的 `lean-spec-planning-with-files-bridge` 技能（`SKILL.md`）**，按其中「极简用户口令与 Agent 约定」「代理标准流程」自动执行（含执行轨 `new-numbered`、规格轨与双向引用等）。详见同目录 `SKILL.md`。
 
 **前提（一次性）**：目标仓库已执行本技能的 `bootstrap.sh`（存在 `doc/plans/plan.sh`、`ACTIVE` 等）；已按上文配置 **LeanSpec MCP**（推荐）；仓库已有或可创建 **`specs/`**。
 
 | 步骤 | 你要做的事 | 提示词示例（发给 Agent） |
 |------|------------|-------------------------|
-| 1. 开双轨（draft） | 一次性建立 Spec（先置为 draft）+ 执行计划 + 双向引用 + 阶段骨架 | `按双轨协作为「<功能简述>」开需求：plan-id 用 <plan-id>。请先通过 LeanSpec MCP 做 search/list 避免重复 spec；再建或对齐 specs/ 下对应 README（含目标、场景、验收、非目标，frontmatter 含 created: YYYY-MM-DD，status 先设为 draft）；再执行 ./doc/plans/plan.sh new <plan-id>；在 effective 的 task_plan.md 顶部写 SpecRef，在 Spec 里写 ExecutionPlan；把验收项映射成若干 Phase，调研长文只进 findings.md。` |
-| 2. 切换当前计划（ACTIVE） | 让执行轨对准本次目录 | `[计划: <plan-id>]` 或：`将 ACTIVE 设为 <plan-id>，我要在该计划上工作。` |
+| 1. 开双轨（draft） | 一次性建立 Spec（先置为 draft）+ 执行计划 + 双向引用 + 阶段骨架 | `按双轨开需求，功能如下：「<功能简述>」` |
+| 2. 切换当前计划（ACTIVE） | 让执行轨对准本次目录 | `[计划: <plan-id>]` |
 | 3. 审计划 | 你打开 `doc/plans/<plan-id>/task_plan.md` 与对应 Spec，改到满意 | （自行编辑保存，无需固定句式。） |
-| 4. 计划审查通过（draft → planned） | 审查计划通过后，冻结规格为 planned（表示规格已冻结可执行） | `当前 effective 计划是 <plan-id>。已经审查通过，确认 Spec 从 draft 置为 planned（表示规格已冻结可执行）。` |
-| 5. 启动实施（planned → in-progress） | 首次实际开始实施（准备改代码/落地实现）时，将 Spec 置为 in-progress | `当前 effective 计划是 <plan-id>。当你准备开始实际实现/改代码时，将 Spec status 更新为 in-progress；然后执行 task_plan.md 中的阶段 1。` |
-| 6. 实施+验收阶段 N（默认合并闭环） | 单次会话完成实施、Spec 自检与三文件更新 | `当前 effective 计划是 <plan-id>。请执行 task_plan.md 中的阶段 <N>；工具编辑后更新 progress.md；阶段收尾时对照 SpecRef/MCP view 中与本阶段相关的验收项自检，无偏差则一次性更新 progress（含执行结果与 Spec 对照结论）和 task_plan 阶段状态；不要重复已做过的 grep/compile（除非源码或 Spec 有变更）。勿把长原文贴进 task_plan.md。` |
-| 6a. （可选）独立验收 | 仅在有偏差/需独立签认时使用 | `阶段 <N> 存在偏差，请单独对照 Spec 验收项自检；以 Spec 条款 checklist 为主，不重复已做过的静态检索与构建；偏差先记 findings.md 再修正。` |
+| 4. 计划审查通过（draft → planned） | 审查计划通过后，冻结规格为 planned（表示规格已冻结可执行） | `双轨计划 <plan-id> 的计划审查已通过，请按技能流程把 Spec 状态更新为 planned。` |
+| 5. 启动实施（planned → in-progress） | 首次实际开始实施（准备改代码/落地实现）时，将 Spec 置为 in-progress | `双轨计划 <plan-id> 现在开始实施，请按技能流程将 Spec 置为 in-progress，并执行下一未完成阶段。` |
+| 6. 实施+验收阶段 N（默认合并闭环） | 单次会话完成实施、Spec 自检与三文件更新 | `双轨计划 <plan-id>，执行阶段 <N>（按技能默认合并闭环：实施 + 验收 + 三文件更新）。` |
+| 6a. （可选）独立验收 | 仅在有偏差/需独立签认时使用 | `双轨计划 <plan-id>，仅做阶段 <N> 独立验收；若有偏差先记录 findings.md，再修正并回写结论。` |
 | 7. 重复 6～6a | 直到所有阶段完成 | 将提示词里的「阶段 1 / 阶段 2」依次数递增；默认用步骤 6 的合并闭环提示词，仅在需要时用独立验收（步骤 6a）。 |
-| 8. 收尾（in-progress → complete；通常与末尾阶段合并） | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 各阶段已完成并通过审查。请：用 LeanSpec MCP 或 CLI 将对应 Spec 从 in-progress 更新为 complete、运行 validate；确认 doc/plans 下 progress.md 与 task_plan 阶段状态已闭合；简述规格与执行轨是否一致。` |
+| 8. 收尾（in-progress → complete；通常与末尾阶段合并） | 规格状态 + 结构校验 + 执行侧闭环 | `双轨计划 <plan-id> 已全部完成，请按技能收尾流程执行（Spec -> complete、validate、执行轨闭环，并给出一致性结论）。` |
 
 **收尾合并**：步骤 8 的操作通常在 `task_plan.md` 最后一个阶段（默认阶段 5）中一并完成。仅在以下情况单独发送步骤 8 口令：
 

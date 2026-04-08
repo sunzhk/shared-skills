@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-02 16:49:40 +0800
-LatestChange: 补全双轨协作的 Spec 状态流转：明确 draft→planned→in-progress→complete 主路径，并说明 archived 为独立终态。
+UpdatedAt: 2026-04-03 17:20:50 +0800
+LatestChange: 口令示例增加「按双轨开需求，功能如下：…」，执行细节以 bridge 技能 SKILL.md 为准。
 -->
 
 # planning-with-files-zh + lean-spec-planning-with-files-bridge + LeanSpec 协作文档
@@ -65,7 +65,7 @@ your-project/
    在 `specs/…` 写清目标、关键场景、验收标准、非目标；**frontmatter 须含 `created: YYYY-MM-DD`**（与 [LeanSpec 指南「一个简单示例」](https://www.lean-spec.dev/zh-Hans/docs/guide/) 一致）。新建 Spec 时将 `status` 初始化为 `draft`（规格撰写中）。另常用 `priority`、`tags`，以及依赖关系字段（如 `depends_on` / `related`，以官方文档为准）。
 
 2. **开执行计划（执行轨）**  
-   `./doc/plans/plan.sh new <plan-id>`（或 `new-plan.sh`），保证 **effective** 目录下有 `task_plan.md`、`findings.md`、`progress.md`。
+   `./doc/plans/plan.sh new <plan-id>`，或 `./doc/plans/plan.sh new-numbered <计划名称>`（扫描顶层 `^数字-` 目录取最大编号 +1，与 `specs/NNN-…` 编号习惯对齐时省得手算序号）；仅需预览 id 时用 `./doc/plans/plan.sh next-numbered-id <计划名称>`。也可用 `new-plan.sh <plan-id>` 直接初始化。
 
 3. **轻量桥接（双向引用，不重写）**  
    - 在 **effective 的 `task_plan.md` 顶部**增加一行引用，例如：`SpecRef: specs/001-user-auth/README.md`。  
@@ -140,7 +140,7 @@ your-project/
 
 | 方式 | 作用 | 说明 |
 |------|------|------|
-| **Cursor 技能** `lean-spec-planning-with-files-bridge` | 触发后代理按固定清单：确认已落地 → 建/对齐 `specs/` → `plan.sh new` → 写入 `SpecRef` / `ExecutionPlan` → 填 Phase 骨架 | 目录：`shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`；安装方式：软链或复制到 `~/.cursor/skills/` 或项目 `.cursor/skills/` |
+| **Cursor 技能** `lean-spec-planning-with-files-bridge` | 触发后代理按固定清单：确认已落地 → 建/对齐 `specs/` → `plan.sh new` 或 `plan.sh new-numbered` → 写入 `SpecRef` / `ExecutionPlan` → 填 Phase 骨架 | 目录：`shared-skills/lean-spec-planning-with-files-bridge/SKILL.md`；安装方式：软链或复制到 `~/.cursor/skills/` 或项目 `.cursor/skills/` |
 | **`bootstrap.sh`** | 一键写入 hooks/rules/脚本，并把**本协作文档**复制到目标仓库 `doc/plans/COORDINATION_LEANSPEC.md` | 一体化脚本（原分拆的 ext / bridge bootstrap 已合并；shared-skills 内旧目录已移除） |
 
 **标准术语：双轨协作** — **规格轨**（`specs/`）与 **执行轨**（`doc/plans/`）并行，用 `SpecRef` / `ExecutionPlan` 轻量对齐；`planning-with-files-zh` 的纪律落在执行轨。**不要用「三件套」命名本工作流**：在 planning-with-files 语境下，「三件套」几乎总是指 **`task_plan` / `findings` / `progress` 三文件**，用作桥接口令会系统性误导 Agent。
@@ -148,8 +148,9 @@ your-project/
 **推荐用户口令示例**（按不易误解程度排序）：
 
 1. **最明确**：「用 **lean-spec-planning-with-files-bridge**：为 `<功能名>` 建 **`specs/…` 规格** + **`doc/plans/<id>/` 计划**，并写 **SpecRef 与 ExecutionPlan**。」  
-2. **简短（推荐日常）**：「**按双轨**给 `<功能名>` 建 spec 和 plan，plan-id 用 `<id>`。」  
-3. **同义说法**：「**双轨开需求** `<功能名>`，plan `<id>`。」「**规执双轨**：…」（规=规格轨，执=执行轨。）
+2. **最短（推荐日常）**：`按双轨开需求，功能如下：「<功能简述>」` — 由代理读取该技能 `SKILL.md` 自动执行（含 `plan.sh new-numbered` 等），用户不必粘贴命令。  
+3. **简短（备选）**：「**按双轨**给 `<功能名>` 建 spec 和 plan，plan-id 用 `<id>`。」（若执行轨用自动编号：「…用 `./doc/plans/plan.sh new-numbered "<计划名称>"`」。）  
+4. **同义说法**：「**双轨开需求** `<功能名>`，plan `<id>`。」「**规执双轨**：…」（规=规格轨，执=执行轨。）
 
 代理应读取桥接技能并执行其中「代理标准流程」；若用户只说要「文件规划、不要 specs」，则走 **planning-with-files-zh** 单独使用，**不要**用本技能执行规格轨步骤。
 

@@ -5,15 +5,15 @@ description: >
   一键落地 Cursor 规则、hooks、doc/plans 辅助脚本与协作文档；支持路径 id（父/子至多两层）、SUB_ACTIVE 与 effective_dir、多计划目录与 ACTIVE 指针、task_plan/findings/progress 三文件及按需 execution_brief。
   规格轨推荐启用 LeanSpec MCP（list/search/view/update/deps/validate/board 等）以降低路径依赖与手改 frontmatter 成本；执行轨仍只维护 doc/plans 三文件与 hooks。
   所有通过本技能创建的计划必须同时建立规格轨（specs/）与执行轨（doc/plans/），并写入 SpecRef/ExecutionPlan 双向引用。
-  在用户提到双轨协作、双轨开需求、规执双轨、规格与执行双轨、LeanSpec 与 doc/plans 联动、SpecRef、LeanSpec MCP、
+  在用户提到双轨协作、双轨开需求、按双轨开需求、功能如下、规执双轨、规格与执行双轨、LeanSpec 与 doc/plans 联动、SpecRef、LeanSpec MCP、
   同时建 spec 和 plan、桥接、落地 planning、安装 hooks、bootstrap、文件规划模板、多计划切换、子计划、planning-with-files 时使用。
-  触发词：双轨协作、双轨开需求、规执双轨、规格执行双轨、LeanSpec doc/plans 联动、SpecRef、ExecutionPlan、LeanSpec MCP、
+  触发词：双轨协作、双轨开需求、按双轨开需求、功能如下、规执双轨、规格执行双轨、LeanSpec doc/plans 联动、SpecRef、ExecutionPlan、LeanSpec MCP、
   桥接、落地 planning、安装 hooks、bootstrap、文件规划模板、多计划切换、子计划、planning-with-files。
 ---
 
 <!--
-UpdatedAt: 2026-04-02 16:49:40 +0800
-LatestChange: 补全双轨协作中的 Spec 状态流转：将 draft 与 in-progress 纳入主流程，并明确 archived 为独立终态规则与修改时机。
+UpdatedAt: 2026-04-03 17:20:50 +0800
+LatestChange: 新增「极简用户口令与 Agent 约定」；description 增加「按双轨开需求、功能如下」触发词；代理标准流程衔接极简口令。
 -->
 
 # lean-spec-planning-with-files-bridge（一体化双轨协作技能）
@@ -98,7 +98,7 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
 
 ## plan-id 与目录（路径 id）
 
-- **plan-id** 为相对 `doc/plans/` 的 POSIX 子路径，用 `/` 连接，**与磁盘目录一一对应**。每段仅 `[a-zA-Z0-9._-]+`，禁止 `..`、首尾 `/`、空段、连续 `/`；相对 `doc/plans/` **至多两段**（`父` 或 `父/子`），不支持更深嵌套。
+- **plan-id** 为相对 `doc/plans/` 的 POSIX 子路径，用 `/` 连接，**与磁盘目录一一对应**。每段可用目录可用字符（允许中文与空格），但禁止控制字符；同时禁止 `..`、首尾 `/`、空段、连续 `/`；相对 `doc/plans/` **至多两段**（`父` 或 `父/子`），不支持更深嵌套。
 - **必须先创建**（`doc/plans/<plan-id>/`）：
   - `task_plan.md`（权威：目标、阶段或总纲大纲、完成判定、重大决策、错误表）
   - `findings.md`（调研与证据：外部资料/检索结果/结论沉淀——**体量大的外部原文放这里**）
@@ -119,15 +119,32 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
 ## 使用者后续操作（简述）
 
 - 新建计划并设为 ACTIVE：`./doc/plans/plan.sh new <plan-id>`（或 `./doc/plans/new-plan.sh <plan-id>`），支持路径 id。
+- **按数字前缀自动编号（与 `specs/NNN-…` 风格对齐时）**：`./doc/plans/plan.sh new-numbered "<计划名称>"` — 扫描 `doc/plans/` 顶层目录名形如 `^[0-9]+-` 者取最大编号 +1，三位补零，拼接计划名称原文（允许中文/空格与常见符号；不允许 `/` 与控制字符）；仅需提供名称，无需手算序号。预览将采用的 id：`./doc/plans/plan.sh next-numbered-id "<计划名称>"`（不创建目录）。
 - 列出/切换计划：`./doc/plans/plan.sh list`（缩进表示子计划）、`./doc/plans/plan.sh use <plan-id>`（**不会**改写任何 `SUB_ACTIVE`）。
 - 在对话中用 **`[计划: <plan-id>]`** 或 **`[plan: <plan-id>]`** 可在 user prompt hook 中自动切换 ACTIVE。
+
+## 极简用户口令与 Agent 约定（推荐）
+
+用户**只需**描述要做什么即可，**不必**在提示词里粘贴 `./doc/plans/plan.sh …` 等命令；具体命令与顺序以**本 `SKILL.md` 下文「代理标准流程」为准**，由 Agent **先读本技能再执行**。
+
+**推荐口令（复制后只改引号内内容）**：
+
+`按双轨开需求，功能如下：「<功能简述>」`
+
+**收到上述句式时，Agent 必须**：
+
+- **读取并遵循**本技能全文（尤其前置条件、代理标准流程、DoD）。
+- **执行轨**：优先 `./doc/plans/plan.sh new-numbered "<计划名称>"`（名称可从功能简述**提炼**为简短可目录化片段；含中文/空格等允许；禁止 `/` 与控制字符；歧义时**最多一句话**向用户确认）；用户已给明确 `plan-id` 时可用 `plan.sh new <plan-id>`。
+- **规格轨**：查重、`draft` 规格、`SpecRef` / `ExecutionPlan`、阶段骨架等按标准流程**逐项做完**，不要因用户未写命令而省略。
 
 ## 代理标准流程（用户要开功能时执行）
 
 按顺序完成；每步可简短向用户确认规格名 / plan-id（或由用户提示给出）。
 
+**若用户仅发送「极简用户口令」**：省略下文「请用户粘贴脚本」类交互；自行提炼 `计划名称` 或 `plan-id`（见上节），并完整执行本清单。
+
 1. **确定标识**
-   - `plan-id`：符合规则的一至两段路径（如 `feat-auth` 或 `feat-auth/T1`）。
+   - `plan-id`：符合规则的一至两段路径（如 `feat-auth` 或 `feat-auth/T1`）；若与规格目录同为 `NNN-名称` 风格，可先 `./doc/plans/plan.sh next-numbered-id "<计划名称>"` 预览将生成的执行轨 id，再令 `specs/` 目录号与之对齐；或先 `new-numbered` 落执行轨再对齐规格路径。
    - Spec 路径：如 `specs/001-feat-auth/README.md`（以仓库实际 LeanSpec 约定为准）。
 
 2. **规格（LeanSpec）**
@@ -136,8 +153,8 @@ bash /绝对路径/到/lean-spec-planning-with-files-bridge/bootstrap.sh /path/t
    - 当 Spec 已审阅通过、范围稳定且可进入执行时，将 `status` 从 `draft` 更新为 `planned`（规格冻结，可开工）。
 
 3. **执行计划（ext）**
-   - 运行 `./doc/plans/plan.sh new <plan-id>`（或等价），保证 **effective** 目录下存在三文件。
-   - 将 `ACTIVE` 设为本次 `plan-id`。
+   - 运行 `./doc/plans/plan.sh new <plan-id>` 或 `./doc/plans/plan.sh new-numbered <计划名称>`（或等价），保证 **effective** 目录下存在三文件。
+   - `new-numbered` 会将 `ACTIVE` 设为生成的 `plan-id`（与 `new` 相同）。
 
 4. **双向轻量引用（核心桥接，禁止整文件覆盖同步）**
    - 在 **effective** 的 `task_plan.md` **顶部**增加一行：`SpecRef: specs/.../README.md`

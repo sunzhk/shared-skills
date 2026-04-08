@@ -3,8 +3,8 @@
 # 历史：由原 planning-with-files-ext 与 planning-with-files-lean-spec-bridge 合并；shared-skills 内旧目录已移除。
 # 产物：.cursor/rules、hooks.json、hooks/*.sh、doc/plans/ 脚本、COORDINATION_LEANSPEC.md
 # hooks 加强：SpecRef 感知——若 task_plan.md 含 SpecRef: 行，hook 输出额外提醒对照规格验收。
-# UpdatedAt: 2026-04-02 16:55:02 +0800
-# LatestChange: 补充落地 LeanSpec 模板与 specs 说明：在目标仓库写入 spec-template.md 的默认 draft 状态，并为 specs/README.md 写入状态流转说明（如存在不同版本则打印 diff 并中断）。
+# UpdatedAt: 2026-04-03 17:20:50 +0800
+# LatestChange: planning-with-files.mdc 模板补充「按双轨开需求，功能如下：…」须对照技能 SKILL 执行，勿要求用户粘贴 plan.sh。
 
 set -euo pipefail
 
@@ -285,8 +285,8 @@ planning_validate_path_id() {
       echo "planning-paths: 含空路径段：${id}" >&2
       return 1
     fi
-    if [[ ! "${p}" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-      echo "planning-paths: 非法段「${p}」（仅字母数字._-）：${id}" >&2
+    if printf '%s' "${p}" | LC_ALL=C grep -q '[[:cntrl:]]'; then
+      echo "planning-paths: 非法段「${p}」（不允许控制字符）：${id}" >&2
       return 1
     fi
   done
@@ -296,7 +296,7 @@ planning_validate_path_id() {
 planning_resolve_effective_subpath() {
   local plans_root="${1:-}"
   local active_line="${2:-}"
-  active_line="$(printf '%s' "${active_line}" | tr -d '\r\n\t ')"
+  active_line="$(printf '%s' "${active_line}" | sed 's/[\r\n]//g')"
   if [[ -z "${active_line}" ]]; then
     echo ""
     return 0
@@ -319,14 +319,85 @@ planning_resolve_effective_subpath() {
   local sub_file="${parent_dir}/SUB_ACTIVE"
   if [[ -f "${sub_file}" ]]; then
     local child
-    child="$(tr -d '\r\n\t ' < "${sub_file}")"
-    if [[ -n "${child}" ]] && [[ "${child}" =~ ^[a-zA-Z0-9._-]+$ ]] && [[ -d "${parent_dir}/${child}" ]]; then
+    child="$(sed 's/[\r\n]//g' < "${sub_file}")"
+    if [[ -n "${child}" ]] && planning_validate_path_id "${child}" && [[ "${child}" != */* ]] && [[ -d "${parent_dir}/${child}" ]]; then
       printf '%s\n' "${active_line}/${child}"
       return 0
     fi
   fi
   printf '%s\n' "${active_line}"
   return 0
+}
+
+# 将用户提供的「计划名称」规范为可用目录名（保留可打印字符，不允许 / 与控制字符）
+planning_slug_plan_name() {
+  local raw="${1:-}"
+  if [[ -z "${raw}" ]]; then
+    echo "planning-paths: 计划名称为空" >&2
+    return 1
+  fi
+  local s
+  s="$(printf '%s' "${raw}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//; s/[[:space:]]+/ /g')"
+  if [[ "${s}" == *"/"* ]]; then
+    echo "planning-paths: 计划名称不允许包含 / ：${raw}" >&2
+    return 1
+  fi
+  if printf '%s' "${s}" | LC_ALL=C grep -q '[[:cntrl:]]'; then
+    echo "planning-paths: 计划名称不允许控制字符" >&2
+    return 1
+  fi
+  if [[ -z "${s}" ]]; then
+    echo "planning-paths: 计划名称规范化后为空" >&2
+    return 1
+  fi
+  printf '%s\n' "${s}"
+  return 0
+}
+
+# 扫描 plans 根下顶层目录名 ^[0-9]+-...，返回当前最大数字；无匹配则为 0
+planning_max_numeric_plan_prefix() {
+  local plans_root="${1:-}"
+  if [[ -z "${plans_root}" ]] || [[ ! -d "${plans_root}" ]]; then
+    echo "planning-paths: plans 根目录无效：${plans_root}" >&2
+    return 1
+  fi
+  local max=0
+  local d base n
+  while IFS= read -r d; do
+    [[ -z "${d}" ]] && continue
+    base="$(basename "${d}")"
+    if [[ "${base}" =~ ^([0-9]+)- ]]; then
+      n="${BASH_REMATCH[1]}"
+      n=$((10#${n}))
+      if [[ "${n}" -gt "${max}" ]]; then
+        max="${n}"
+      fi
+    fi
+  done < <(find "${plans_root}" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | sort)
+  printf '%d\n' "${max}"
+}
+
+# 生成下一个顶层 plan-id：NNN-<slug>；三位补零；若目录已存在则递增编号直至可用
+planning_next_numbered_plan_id() {
+  local plans_root="${1:-}"
+  local raw_name="${2:-}"
+  local slug
+  if ! slug="$(planning_slug_plan_name "${raw_name}")"; then
+    return 1
+  fi
+  local max
+  max="$(planning_max_numeric_plan_prefix "${plans_root}")" || return 1
+  local next=$((max + 1))
+  local num id
+  while true; do
+    num="$(printf '%03d' "${next}")"
+    id="${num}-${slug}"
+    if [[ ! -d "${plans_root}/${id}" ]]; then
+      printf '%s\n' "${id}"
+      return 0
+    fi
+    next=$((next + 1))
+  done
 }
 PLANPATHSEOF
 
@@ -394,7 +465,7 @@ LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认阶段�
 
 ## plan-id 与目录（路径 id）
 
-- **plan-id** 为相对 \`doc/plans/\` 的 POSIX 子路径，用 \`/\` 连接，**与磁盘目录一一对应**。每段仅 \`[a-zA-Z0-9._-]+\`，禁止 \`..\`、首尾 \`/\`、空段、连续 \`/\`；相对 \`doc/plans/\` **至多两段**（\`父\` 或 \`父/子\`），不支持更深嵌套。
+- **plan-id** 为相对 \`doc/plans/\` 的 POSIX 子路径，用 \`/\` 连接，**与磁盘目录一一对应**。每段可用任意目录名字符（允许中文与空格），但禁止控制字符；同时禁止 \`..\`、首尾 \`/\`、空段、连续 \`/\`；相对 \`doc/plans/\` **至多两段**（\`父\` 或 \`父/子\`），不支持更深嵌套。
 - **必须先创建**（\`doc/plans/<plan-id>/\`）：
   - \`task_plan.md\`（权威：目标、阶段或总纲大纲、完成判定、重大决策、错误表）
   - \`findings.md\`（调研与证据：外部资料/检索结果/结论沉淀——**体量大的外部原文放这里**）
@@ -437,8 +508,10 @@ LatestChange: 基于 002-A9-3 复盘结论，确立合并闭环为默认阶段�
 
 ## 工具
 
-- \`./doc/plans/plan.sh new <plan-id>\`、\`use\`、\`list\` 支持路径 id；\`list\` 列出所有含 \`task_plan.md\` 的计划目录（缩进表示父子）。
+- \`./doc/plans/plan.sh new <plan-id>\`、\`new-numbered <计划名称>\`（自动 \`NNN-\` 最大编号+1 + 原名称）、\`next-numbered-id <计划名称>\`（仅打印将采用的 plan-id，不创建）、\`use\`、\`list\` 支持路径 id；\`list\` 列出所有含 \`task_plan.md\` 的计划目录（缩进表示父子）。
+- **编号 plan-id**：仅统计 \`doc/plans/\` 下**顶层**目录名形如 \`^[0-9]+-\` 者取最大数字；新 id 为 \`(max+1)\` 三位补零 + \`-\` + 名称（允许中文/空格与常见符号；不允许 \`/\` 与控制字符）。
 - 对话中 \`[计划: <plan-id>]\` / \`[plan: <plan-id>]\` 可切换 \`ACTIVE\`（**不**修改 \`SUB_ACTIVE\`）。
+- 用户可说「**按双轨开需求，功能如下：**…」而**不**粘贴 \`plan.sh\` 命令；代理须读取 **lean-spec-planning-with-files-bridge** 的 \`SKILL.md\`（「极简用户口令与 Agent 约定」「代理标准流程」），自动完成执行轨 \`new-numbered\`、规格轨与双向引用等，勿把脚本全文塞回用户提示词。
 EOF
 
 # ── user-prompt-submit.sh（SpecRef 感知加强） ────────────────────────────────────
@@ -484,7 +557,8 @@ parse_plan_id_from_prompt() {
   fi
 
   local plan_id
-  plan_id="$(printf '%s' "${prompt_text}" | sed -nE 's/.*\[(计划|plan)[[:space:]]*:[[:space:]]*([a-zA-Z0-9._/-]+)\].*/\2/p' | head -n 1)"
+  plan_id="$(printf '%s' "${prompt_text}" | sed -nE 's/.*\[(计划|plan)[[:space:]]*:[[:space:]]*([^]]+)\].*/\2/p' | head -n 1)"
+  plan_id="$(printf '%s' "${plan_id}" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   echo "${plan_id}"
 }
 
@@ -515,7 +589,7 @@ switch_active_if_needed "${PLAN_ID_FROM_PROMPT}"
 
 ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(sed 's/[\r\n]//g' < "${ACTIVE_FILE}")"
 fi
 
 EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
@@ -562,7 +636,7 @@ source "${BASE_DIR}/planning-paths.sh"
 
 ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(sed 's/[\r\n]//g' < "${ACTIVE_FILE}")"
 fi
 
 EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
@@ -595,7 +669,7 @@ source "${BASE_DIR}/planning-paths.sh"
 
 ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(sed 's/[\r\n]//g' < "${ACTIVE_FILE}")"
 fi
 
 EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
@@ -636,7 +710,7 @@ source "${BASE_DIR}/planning-paths.sh"
 
 ACTIVE_LINE=""
 if [ -f "${ACTIVE_FILE}" ]; then
-  ACTIVE_LINE="$(tr -d '\r\n\t ' < "${ACTIVE_FILE}")"
+  ACTIVE_LINE="$(sed 's/[\r\n]//g' < "${ACTIVE_FILE}")"
 fi
 
 EFFECTIVE_SUBPATH="$(planning_resolve_effective_subpath "${BASE_DIR}" "${ACTIVE_LINE}")"
@@ -690,7 +764,7 @@ source "${PLANS_DIR}/planning-paths.sh"
 PLAN_ID="${1:-}"
 if [[ -z "${PLAN_ID}" ]]; then
   echo "用法: ./doc/plans/new-plan.sh <plan-id>" >&2
-  echo "  plan-id：相对 doc/plans 的路径，一至两段（如 feature-a 或 feature-a/T1），段内仅字母数字._-" >&2
+  echo "  plan-id：相对 doc/plans 的路径，一至两段（如 feature-a 或 feature-a/T1），每段可用目录可用字符（禁 / 与控制字符）" >&2
   exit 1
 fi
 if ! planning_validate_path_id "${PLAN_ID}"; then
@@ -846,14 +920,18 @@ usage() {
   ./doc/plans/plan.sh list
   ./doc/plans/plan.sh use <plan-id>
   ./doc/plans/plan.sh new <plan-id>
+  ./doc/plans/plan.sh new-numbered <计划名称>
+  ./doc/plans/plan.sh next-numbered-id <计划名称>
 
-plan-id：相对 doc/plans 的一至两段路径（如 myplan 或 myplan/T1）；切换到父计划不会修改该目录下 SUB_ACTIVE。
+plan-id：相对 doc/plans 的一至两段路径（如 myplan 或 myplan/T1）；允许中文/空格等目录可用字符（禁 / 与控制字符）；切换到父计划不会修改该目录下 SUB_ACTIVE。
+
+new-numbered / next-numbered-id：在 doc/plans 顶层扫描已有目录名「数字-」前缀，取最大编号+1，拼接计划名称原文（允许中文/空格，禁 / 与控制字符）。next-numbered-id 只输出一行 plan-id，不创建目录。
 EOT
 }
 
 read_active() {
   if [[ -f "${ACTIVE_FILE}" ]]; then
-    tr -d '\r\n\t ' < "${ACTIVE_FILE}"
+    sed 's/[\r\n]//g' < "${ACTIVE_FILE}"
   fi
 }
 
@@ -933,6 +1011,31 @@ cmd_new() {
   "${NEW_PLAN_SCRIPT}" "${plan_id}"
 }
 
+cmd_new_numbered() {
+  local raw_name="${1:-}"
+  if [[ -z "${raw_name}" ]]; then
+    echo "错误: 缺少计划名称。" >&2
+    usage >&2
+    exit 1
+  fi
+  local plan_id
+  if ! plan_id="$(planning_next_numbered_plan_id "${PLANS_DIR}" "${raw_name}")"; then
+    exit 1
+  fi
+  echo "[plan.sh] 已按顶层 NNN- 编号规则生成 plan-id: ${plan_id}" >&2
+  cmd_new "${plan_id}"
+}
+
+cmd_next_numbered_id() {
+  local raw_name="${1:-}"
+  if [[ -z "${raw_name}" ]]; then
+    echo "错误: 缺少计划名称。" >&2
+    usage >&2
+    exit 1
+  fi
+  planning_next_numbered_plan_id "${PLANS_DIR}" "${raw_name}"
+}
+
 main() {
   local action="${1:-}"
   case "${action}" in
@@ -944,6 +1047,12 @@ main() {
       ;;
     new)
       cmd_new "${2:-}"
+      ;;
+    new-numbered)
+      cmd_new_numbered "${2:-}"
+      ;;
+    next-numbered-id)
+      cmd_next_numbered_id "${2:-}"
       ;;
     *)
       usage
