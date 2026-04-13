@@ -2,7 +2,17 @@
 set -euo pipefail
 
 project_root="${1:-$PWD}"
-commands_dir="$project_root/.cursor/commands"
+default_commands_dir="$project_root/.claude/commands"
+
+if [[ -n "${OPSX_COMMANDS_DIR:-}" ]]; then
+  commands_dir="$OPSX_COMMANDS_DIR"
+elif [[ -d "$project_root/.claude/commands" ]]; then
+  commands_dir="$project_root/.claude/commands"
+elif [[ -d "$project_root/.codex/commands" ]]; then
+  commands_dir="$project_root/.codex/commands"
+else
+  commands_dir="$default_commands_dir"
+fi
 
 mkdir -p "$commands_dir"
 
@@ -62,4 +72,5 @@ done
 
 echo "[open-spec-cn] generated cn slash commands: $generated_count"
 echo "[open-spec-cn] output directory: $commands_dir"
+echo "[open-spec-cn] directory resolution: OPSX_COMMANDS_DIR > .claude/commands > .codex/commands"
 echo "[open-spec-cn] done. no terminal wrapper commands are installed."

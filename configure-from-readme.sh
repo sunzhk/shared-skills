@@ -1,159 +1,175 @@
 #!/bin/bash
-# 读取 <!-- shared-skills-config ... -->：先应用 shared-skills 本仓库 README.md 中的默认块（含预置 cursor_skill_links），
-# 再用业务项目根 README.md 中的块覆盖同名键（业务可整段省略，实现「只给 Agent 仓库地址、clone 后一条命令」）。
-# 业务项目可无 README.md：此时仅使用仓库默认。若两处均无配置块则报错。
-# 依次执行 lean-spec-planning-with-files-bridge（一体化双轨，新键 lean_spec_planning）/ 向后兼容旧键 planning_with_files_ext（lean_spec_bridge_doc 仅兼容提示）/
-# 解析并校验 cursor_skill_links → 写入 AGENTS.md（## Shared Skills；路径前缀默认 .cursor/shared-skills）。
-# 聚合包 code-styleguide-skills、unit-test-guide-skills 会解析为各自 router 子路径。不创建 .cursor/skills 软链。
-# 本脚本须保留在 shared-skills 仓库根目录，以便解析 SKILLS_ROOT。
+# 读取 shared-skills README 中的配置块，并按 target 生成业务项目 AGENTS.md 的 Shared Skills 节。
+# 当前版本只支持 skills.sh 主路径，不保留任何旧键、旧路径或历史回退逻辑。
 
 set -euo pipefail
 
 usage() {
   cat <<'EOT' >&2
 用法:
-  bash /path/to/shared-skills/configure-from-readme.sh [target_project_root]
+  bash /path/to/shared-skills/configure-from-readme.sh [--target claude|codex|both] [target_project_root]
 
 环境变量:
-  SKILLS_ROOT   可选。默认为本脚本所在目录（shared-skills 根）。
-  CURSOR_SHARED_SKILLS_REL  可选。写入 AGENTS.md 的技能路径前缀（默认 .cursor/shared-skills）。
+  SKILLS_ROOT            可选。默认为本脚本所在目录（shared-skills 根）。
+  SHARED_SKILLS_TARGET   可选。与 --target 含义相同，支持 claude/codex/both（默认 both）。
 
 说明:
-  - 默认配置（含 cursor_skill_links）预写在 shared-skills 仓库根 README.md 的 <!-- shared-skills-config --> 中；业务项目 README 可省略或只写需要覆盖的键。
-  - 执行顺序: lean_spec_planning（或兼容旧键 planning_with_files_ext）→ 解析并校验 cursor_skill_links → 写入 AGENTS.md
+  - 默认配置（含 shared_skill_links）预写在 shared-skills 仓库根 README.md 的 <!-- shared-skills-config --> 中；业务项目 README 可省略或只写需要覆盖的键。
+  - 当前只接受 shared_skill_links；出现旧键或未知键将直接失败。
+  - target 路径策略:
+      claude -> .claude/shared-skills
+      codex  -> .codex/shared-skills
+      both   -> 同时写入上述两套路径
+  - 执行顺序: 合并配置 -> 解析并校验 shared_skill_links -> 按 target 写入 AGENTS.md
   - 若 shared-skills/README.md 与业务 README 中均无可解析配置块，以非零退出。
 
 业务 README 可选片段（仅覆盖部分键时）:
   <!-- shared-skills-config
-  lean_spec_bridge_doc=0
+  shared_skill_links=eng-practices,code-styleguide-skills,unit-test-guide-skills,open-spec-cn
   -->
 EOT
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-  usage
-  exit 0
-fi
+target_mode_cli=""
+target_root_arg=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --target)
+      if [[ $# -lt 2 ]]; then
+        echo "[shared-skills] 错误: --target 缺少参数（可选: claude|codex|both）。" >&2
+        usage
+        exit 2
+      fi
+      target_mode_cli="$2"
+      shift 2
+      ;;
+    --target=*)
+      target_mode_cli="${1#*=}"
+      shift
+      ;;
+    -*)
+      echo "[shared-skills] 错误: 未知参数: $1" >&2
+      usage
+      exit 2
+      ;;
+    *)
+      if [[ -n "${target_root_arg}" ]]; then
+        echo "[shared-skills] 错误: 仅允许一个 target_project_root，收到多余参数: $1" >&2
+        usage
+        exit 2
+      fi
+      target_root_arg="$1"
+      shift
+      ;;
+  esac
+done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SKILLS_ROOT="${SKILLS_ROOT:-${SCRIPT_DIR}}"
-TARGET_ROOT="${1:-$(pwd)}"
+TARGET_ROOT="${target_root_arg:-$(pwd)}"
 TARGET_ROOT="$(cd "${TARGET_ROOT}" && pwd)"
 README="${TARGET_ROOT}/README.md"
 SKILLS_README="${SKILLS_ROOT}/README.md"
-# 业务项目内 shared-skills 挂载路径（相对项目根），须与文档约定一致；可通过环境变量覆盖。
-CURSOR_SHARED_SKILLS_REL="${CURSOR_SHARED_SKILLS_REL:-.cursor/shared-skills}"
+TARGET_MODE_RAW="${target_mode_cli:-${SHARED_SKILLS_TARGET:-both}}"
+TARGET_MODE="$(printf '%s' "${TARGET_MODE_RAW}" | tr '[:upper:]' '[:lower:]')"
+
+case "${TARGET_MODE}" in
+  claude|codex|both) ;;
+  *)
+    echo "[shared-skills] 错误: 无效 target: ${TARGET_MODE_RAW}（可选: claude|codex|both）" >&2
+    exit 2
+    ;;
+esac
 
 extract_config_block() {
-  local f="$1"
+  local file="$1"
   awk '
     BEGIN { inblk=0 }
     /<!--[[:space:]]*shared-skills-config/ { inblk=1; next }
     inblk && /-->/ { exit }
     inblk { print }
-  ' "${f}"
-}
-
-tolower() {
-  printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
-}
-
-is_true() {
-  local v
-  v="$(tolower "${1:-}")"
-  case "${v}" in
-    1|true|yes|on) return 0 ;;
-    *) return 1 ;;
-  esac
+  ' "$file"
 }
 
 trim() {
-  local s="$1"
-  s="${s#"${s%%[![:space:]]*}"}"
-  s="${s%"${s##*[![:space:]]}"}"
-  printf '%s' "${s}"
+  local value="$1"
+  value="${value#"${value%%[![:space:]]*}"}"
+  value="${value%"${value##*[![:space:]]}"}"
+  printf '%s' "$value"
 }
 
-# 将配置中的聚合技能包目录名解析为「含 SKILL.md」的路径（相对 shared-skills 根，可含 /）。
-resolve_cursor_skill_entry() {
-  local name="$1"
-  case "${name}" in
-    code-styleguide-skills)
-      printf '%s' 'code-styleguide-skills/styleguide-router'
-      ;;
-    unit-test-guide-skills)
-      printf '%s' 'unit-test-guide-skills/unit-test-router'
-      ;;
-    *)
-      printf '%s' "${name}"
-      ;;
-  esac
+resolve_skill_entry() {
+  printf '%s' "$1"
 }
 
-# 逗号分隔的 cursor_skill_links → 解析聚合包名、按首次出现顺序去重，输出逗号分隔路径。
-expand_cursor_skill_links_csv() {
+expand_skill_links_csv() {
   local csv="$1"
-  local _saved_ifs="${IFS}"
+  local saved_ifs="$IFS"
   IFS=','
   # shellcheck disable=SC2206
   local parts=(${csv})
-  IFS="${_saved_ifs}"
+  IFS="$saved_ifs"
   local out=()
-  local r p e dup
-  for p in "${parts[@]}"; do
-    p="$(trim "${p}")"
-    [[ -z "${p}" ]] && continue
-    r="$(resolve_cursor_skill_entry "${p}")"
-    if [[ "${r}" != "${p}" ]]; then
-      echo "[shared-skills] 聚合技能包 \"${p}\" 解析为路径: ${r}" >&2
-    fi
-    dup=0
+  local resolved part entry duplicate
+
+  for part in "${parts[@]}"; do
+    part="$(trim "${part}")"
+    [[ -z "${part}" ]] && continue
+    resolved="$(resolve_skill_entry "${part}")"
+    duplicate=0
     if [[ ${#out[@]} -gt 0 ]]; then
-      for e in "${out[@]}"; do
-        if [[ "${e}" == "${r}" ]]; then dup=1; break; fi
+      for entry in "${out[@]}"; do
+        if [[ "${entry}" == "${resolved}" ]]; then
+          duplicate=1
+          break
+        fi
       done
     fi
-    [[ "${dup}" -eq 1 ]] && continue
-    out+=("${r}")
+    [[ "${duplicate}" -eq 1 ]] && continue
+    out+=("${resolved}")
   done
+
   if [[ ${#out[@]} -eq 0 ]]; then
     printf ''
-    return
+    return 0
   fi
+
   (IFS=','; printf '%s' "${out[*]}")
 }
 
-# shellcheck disable=SC2034
-planning_with_files_ext=""
-planning_with_files_ext_no_install_pwfz=""
-lean_spec_bridge_doc=""
-lean_spec_planning=""
-lean_spec_planning_no_install_pwfz=""
-cursor_skill_links=""
+shared_skill_links=""
 
 apply_config_block() {
   local block="$1"
   local src_label="$2"
+  local line key value
+
   [[ -z "${block//[[:space:]]/}" ]] && return 0
+
   while IFS= read -r raw || [[ -n "${raw}" ]]; do
     line="$(trim "${raw}")"
     [[ -z "${line}" ]] && continue
     [[ "${line}" == \#* ]] && continue
+
     if [[ "${line}" != *"="* ]]; then
-      echo "[shared-skills] 警告: [${src_label}] 忽略非 key=value 行: ${line}" >&2
-      continue
+      echo "[shared-skills] 错误: [${src_label}] 仅支持 key=value 行，收到: ${line}" >&2
+      exit 2
     fi
+
     key="$(trim "${line%%=*}")"
-    val="$(trim "${line#*=}")"
+    value="$(trim "${line#*=}")"
+
     case "${key}" in
-      planning_with_files_ext) planning_with_files_ext="${val}" ;;
-      planning_with_files_ext_no_install_pwfz) planning_with_files_ext_no_install_pwfz="${val}" ;;
-      lean_spec_bridge_doc) lean_spec_bridge_doc="${val}" ;;
-      lean_spec_planning) lean_spec_planning="${val}" ;;
-      lean_spec_planning_no_install_pwfz) lean_spec_planning_no_install_pwfz="${val}" ;;
-      cursor_skill_links) cursor_skill_links="${val}" ;;
+      shared_skill_links)
+        shared_skill_links="${value}"
+        ;;
       *)
-        echo "[shared-skills] 警告: [${src_label}] 未知配置项（已忽略）: ${key}" >&2
+        echo "[shared-skills] 错误: [${src_label}] 不支持配置项: ${key}。当前版本只接受 shared_skill_links。" >&2
+        exit 2
         ;;
     esac
   done <<< "${block}"
@@ -163,6 +179,7 @@ DEFAULT_BLOCK=""
 if [[ -f "${SKILLS_README}" ]]; then
   DEFAULT_BLOCK="$(extract_config_block "${SKILLS_README}")"
 fi
+
 PROJECT_BLOCK=""
 if [[ -f "${README}" ]]; then
   PROJECT_BLOCK="$(extract_config_block "${README}")"
@@ -173,7 +190,6 @@ fi
 if [[ -z "${DEFAULT_BLOCK//[[:space:]]/}" && -z "${PROJECT_BLOCK//[[:space:]]/}" ]]; then
   echo "[shared-skills] 错误: 未找到 <!-- shared-skills-config ... -->。" >&2
   echo "  须在 ${SKILLS_README} 中预置默认块，或在业务项目 ${README} 中加入配置块。" >&2
-  echo "  请参阅: ${SKILLS_ROOT}/README.human.md「README 驱动一键配置」。" >&2
   exit 1
 fi
 
@@ -181,125 +197,101 @@ if [[ -n "${DEFAULT_BLOCK//[[:space:]]/}" ]]; then
   echo "[shared-skills] 已加载默认配置块: ${SKILLS_README}" >&2
   apply_config_block "${DEFAULT_BLOCK}" "默认(shared-skills/README.md)"
 fi
+
 if [[ -n "${PROJECT_BLOCK//[[:space:]]/}" ]]; then
   echo "[shared-skills] 已合并业务项目配置块: ${README}" >&2
   apply_config_block "${PROJECT_BLOCK}" "业务 README.md"
 fi
 
-cursor_skill_links_resolved=""
-if [[ -n "$(trim "${cursor_skill_links}")" ]]; then
-  cursor_skill_links_resolved="$(expand_cursor_skill_links_csv "${cursor_skill_links}")"
+if [[ -z "$(trim "${shared_skill_links}")" ]]; then
+  echo "[shared-skills] 错误: shared_skill_links 为空。当前版本要求显式解析出至少一个入口技能。" >&2
+  exit 1
 fi
 
-# ── 一体化双轨：lean_spec_planning 优先；旧键 planning_with_files_ext 映射至同一 bootstrap ──
-MERGED_BOOT="${SKILLS_ROOT}/lean-spec-planning-with-files-bridge/bootstrap.sh"
+skill_links_resolved="$(expand_skill_links_csv "${shared_skill_links}")"
+if [[ -z "$(trim "${skill_links_resolved}")" ]]; then
+  echo "[shared-skills] 错误: shared_skill_links 解析后为空，请检查配置值。" >&2
+  exit 1
+fi
 
-_run_merged_bootstrap() {
-  local no_pwfz_flag="$1" # lean_spec_planning_no_install_pwfz 或 planning_with_files_ext_no_install_pwfz
-  local merged_args
-  if [[ ! -f "${MERGED_BOOT}" ]]; then
-    echo "[shared-skills] 错误: 找不到 lean-spec-planning-with-files-bridge/bootstrap.sh: ${MERGED_BOOT}" >&2
+saved_ifs="$IFS"
+IFS=','
+# shellcheck disable=SC2206
+resolved_links=(${skill_links_resolved})
+IFS="$saved_ifs"
+
+for entry in "${resolved_links[@]}"; do
+  name="$(trim "${entry}")"
+  [[ -z "${name}" ]] && continue
+  src="${SKILLS_ROOT}/${name}"
+  if [[ ! -d "${src}" ]] || [[ ! -f "${src}/SKILL.md" ]]; then
+    echo "[shared-skills] 错误: 技能目录不存在或缺少 SKILL.md: ${src}" >&2
     exit 1
   fi
-  merged_args=(bash "${MERGED_BOOT}" "${TARGET_ROOT}")
-  if is_true "${no_pwfz_flag}"; then
-    merged_args+=(--no-install-planning-with-files-zh)
-  fi
-  "${merged_args[@]}"
+  echo "[shared-skills] 已校验 shared_skill_links 项: ${name}" >&2
+done
+
+SKILL_PATH_PREFIXES=()
+case "${TARGET_MODE}" in
+  claude) SKILL_PATH_PREFIXES+=(".claude/shared-skills") ;;
+  codex) SKILL_PATH_PREFIXES+=(".codex/shared-skills") ;;
+  both) SKILL_PATH_PREFIXES+=(".claude/shared-skills" ".codex/shared-skills") ;;
+esac
+
+prefix_label() {
+  case "$1" in
+    .claude/shared-skills) printf 'Claude' ;;
+    .codex/shared-skills) printf 'Codex' ;;
+    *) printf '%s' "$1" ;;
+  esac
 }
 
-if is_true "${lean_spec_planning}"; then
-  echo "[shared-skills] 执行: lean-spec-planning-with-files-bridge/bootstrap.sh（一体化双轨）" >&2
-  _run_merged_bootstrap "${lean_spec_planning_no_install_pwfz}"
-elif is_true "${planning_with_files_ext}"; then
-  echo "[shared-skills] 提示: 检测到旧键 planning_with_files_ext；建议迁移至 lean_spec_planning=1（一体化双轨技能）。" >&2
-  echo "[shared-skills] 执行: lean-spec-planning-with-files-bridge/bootstrap.sh（兼容旧键）" >&2
-  _run_merged_bootstrap "${planning_with_files_ext_no_install_pwfz}"
-else
-  echo "[shared-skills] 跳过 lean_spec_planning / planning_with_files_ext（未启用或为假）。" >&2
-fi
-
-# 旧键 lean_spec_bridge_doc：协作文档已含于一体化 bootstrap；单独启用时提示迁移
-if is_true "${lean_spec_bridge_doc}" && ! is_true "${lean_spec_planning}" && ! is_true "${planning_with_files_ext}"; then
-  echo "[shared-skills] 提示: lean_spec_bridge_doc 已废弃；请改用 lean_spec_planning=1（bootstrap 已含协作文档复制）。" >&2
-fi
-
-if [[ -n "$(trim "${cursor_skill_links_resolved}")" ]]; then
-  _saved_ifs="${IFS}"
-  IFS=','
-  # shellcheck disable=SC2206
-  _links=(${cursor_skill_links_resolved})
-  IFS="${_saved_ifs}"
-  for entry in "${_links[@]}"; do
-    name="$(trim "${entry}")"
-    [[ -z "${name}" ]] && continue
-    src="${SKILLS_ROOT}/${name}"
-    if [[ ! -d "${src}" ]] || [[ ! -f "${src}/SKILL.md" ]]; then
-      echo "[shared-skills] 错误: 技能目录不存在或缺少 SKILL.md: ${src}" >&2
-      exit 1
-    fi
-    echo "[shared-skills] 已校验 cursor_skill_links 项: ${name}" >&2
-  done
-else
-  if [[ -n "$(trim "${cursor_skill_links}")" ]]; then
-    echo "[shared-skills] 警告: cursor_skill_links 非空但解析后无有效条目，跳过校验与 AGENTS.md。" >&2
-  else
-    echo "[shared-skills] 跳过 cursor_skill_links（空）。" >&2
-  fi
-fi
-
-# ── 写入 AGENTS.md（## Shared Skills 节） ──────────────────────────────────────
 write_agents_md() {
-  local links_csv="$1"          # 解析后的技能相对路径列表（逗号分隔，可含 /）
+  local links_csv="$1"
   local agents_md="${TARGET_ROOT}/AGENTS.md"
   local section_marker="## Shared Skills（由 configure-from-readme.sh 生成，勿手动删除此行）"
-
-  # 构建新的 ## Shared Skills 节内容（路径前缀见 CURSOR_SHARED_SKILLS_REL）
   local new_section
-  new_section="${section_marker}"$'\n'
-  _saved_ifs="${IFS}"
+
+  new_section="${section_marker}"
+
+  local saved_ifs="$IFS"
   IFS=','
   # shellcheck disable=SC2206
-  _skill_names=(${links_csv})
-  IFS="${_saved_ifs}"
-  for entry in "${_skill_names[@]}"; do
-    local sname
-    sname="$(trim "${entry}")"
-    [[ -z "${sname}" ]] && continue
-    new_section+=$'\n'"- \`${CURSOR_SHARED_SKILLS_REL}/${sname}/SKILL.md\`"
+  local skill_names=(${links_csv})
+  IFS="$saved_ifs"
+
+  local prefix_count="${#SKILL_PATH_PREFIXES[@]}"
+  local prefix entry sname
+  for prefix in "${SKILL_PATH_PREFIXES[@]}"; do
+    if [[ "${prefix_count}" -gt 1 ]]; then
+      new_section+=$'\n\n'"### $(prefix_label "${prefix}")"
+    fi
+    for entry in "${skill_names[@]}"; do
+      sname="$(trim "${entry}")"
+      [[ -z "${sname}" ]] && continue
+      new_section+=$'\n'"- \`${prefix}/${sname}/SKILL.md\`"
+    done
   done
+  new_section+=$'\n'
 
   if [[ ! -f "${agents_md}" ]]; then
-    # 文件不存在 → 新建
     printf '%s\n' "${new_section}" > "${agents_md}"
     echo "[shared-skills] 已创建 AGENTS.md 并写入 Shared Skills 节: ${agents_md}" >&2
   elif grep -qF "${section_marker}" "${agents_md}"; then
-    # 已有 ## Shared Skills 节 → 替换该节（从 marker 到下一个 ## 或文件末尾）
     python3 - "${agents_md}" "${section_marker}" "${new_section}" <<'PYEOF'
-import sys, re
+import re
+import sys
 
-path       = sys.argv[1]
-marker     = sys.argv[2]
-new_sec    = sys.argv[3]
-
+path = sys.argv[1]
+marker = sys.argv[2]
+new_section = sys.argv[3]
 text = open(path, 'r', encoding='utf-8').read()
-
-# 匹配从 marker 行开始到（不含）下一个 ## 标题行或文件末尾
-pattern = re.compile(
-    r'(^|\n)' + re.escape(marker) + r'.*?(?=\n## |\Z)',
-    re.DOTALL
-)
-
-replaced = pattern.sub(
-    lambda m: (('\n' if m.group(1) == '\n' else '') + new_sec),
-    text
-)
-
+pattern = re.compile(r'(^|\n)' + re.escape(marker) + r'.*?(?=\n## |\Z)', re.DOTALL)
+replaced = pattern.sub(lambda m: (('\n' if m.group(1) == '\n' else '') + new_section), text)
 open(path, 'w', encoding='utf-8').write(replaced)
 PYEOF
     echo "[shared-skills] 已更新 AGENTS.md 中的 Shared Skills 节: ${agents_md}" >&2
   else
-    # 文件存在但无 ## Shared Skills 节 → 末尾追加
     {
       printf '\n'
       printf '%s\n' "${new_section}"
@@ -308,10 +300,7 @@ PYEOF
   fi
 }
 
-if [[ -n "$(trim "${cursor_skill_links_resolved}")" ]]; then
-  write_agents_md "${cursor_skill_links_resolved}"
-else
-  echo "[shared-skills] cursor_skill_links 解析后为空，跳过写入 AGENTS.md。" >&2
-fi
+write_agents_md "${skill_links_resolved}"
 
+echo "[shared-skills] target=${TARGET_MODE}，写入路径前缀: ${SKILL_PATH_PREFIXES[*]}" >&2
 echo "[shared-skills] 配置完成: ${TARGET_ROOT}" >&2

@@ -1,6 +1,11 @@
+---
+name: open-spec-cn
+description: Use when you need Chinese guidance for OpenSpec workflows, command setup, and spec-driven delivery tasks.
+---
+
 <!--
-UpdatedAt: 2026-04-08 17:20:29 +0800
-LatestChange: 初始化脚本升级为自动为全部 opsx 命令生成 -cn 版本，不再只生成 opsx-onboard-cn。
+UpdatedAt: 2026-04-13 09:46:41 +0800
+LatestChange: 增加 `/open-spec-cn init` 与 `commands-init` 子命令，分别负责写入 AGENTS.md 与生成 Slash 命令。
 -->
 
 # open-spec-cn
@@ -10,7 +15,7 @@ LatestChange: 初始化脚本升级为自动为全部 opsx 命令生成 -cn 版�
 为 OpenSpec 提供可跨项目复用的中文规范与命令包装，确保以下约束长期稳定生效：
 
 - 规格文档以中文为主，保持人类可读性。
-- Requirement 语句必须包含 `MUST` 或 `SHALL`（推荐：`必须（MUST）` / `应当（SHALL）`）。
+- Requirement 语句必须包含 `MUST` 或 `SHALL`。
 - `Purpose` 不允许保留 `TBD` 占位文本。
 - 归档前后自动校验，减少在 `archive` 阶段被阻塞的返工。
 
@@ -23,12 +28,46 @@ LatestChange: 初始化脚本升级为自动为全部 opsx 命令生成 -cn 版�
 - “给 openspec 命令套一层 wrapper”
 - “跨项目统一 OpenSpec 文档标准”
 
+## 子命令
+
+### `init`
+
+当用户显式要求 `/open-spec-cn init` 时：
+
+1. 运行 `scripts/init-open-spec-cn.sh`。
+2. 在当前项目根目录创建或更新 `AGENTS.md` 中的 `open-spec-cn` 说明块。
+3. 返回实际写入的目标文件路径。
+
+执行命令：
+
+```bash
+bash /path/to/shared-skills/open-spec-cn/scripts/init-open-spec-cn.sh [project-root]
+```
+
+### `commands-init`
+
+当用户显式要求 `/open-spec-cn commands-init` 时：
+
+1. 运行 `scripts/install-open-spec-cn.sh`。
+2. 在目标项目的命令目录中生成 `/opsx-*-cn` 文件。
+3. 返回所选命令目录与生成数量。
+
+执行命令：
+
+```bash
+bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [project-root]
+```
+
+### 默认动作
+
+当子命令不是 `init` 或 `commands-init` 时，按本文件其余规则执行正常的 OpenSpec 中文规范辅助流程。
+
 ## 规范（强制）
 
 ### 1) 写作语言
 
 - `openspec/changes/*/specs/**/spec.md` 与 `openspec/specs/**/spec.md` 的正文默认使用中文。
-- 标题建议中文化（如 `Requirement` 标题可写中文语义标题）。
+- 标题建议中文化。
 
 ### 2) 规范关键词
 
@@ -40,9 +79,9 @@ LatestChange: 初始化脚本升级为自动为全部 opsx 命令生成 -cn 版�
 ### 3) Purpose 约束
 
 - `## Purpose` 下不得出现 `TBD` 占位文本。
-- 必须写清能力目标与边界（1-3 句即可，简洁优先）。
+- 必须写清能力目标与边界。
 
-### 4) 归档前自检（最小）
+### 4) 归档前自检
 
 ```bash
 rg "MUST|SHALL" openspec/changes/<change>/specs
@@ -53,21 +92,20 @@ rg "TBD - created by archiving|^TBD$" openspec/specs
 
 本技能提供 `scripts/install-open-spec-cn.sh`，仅负责在项目内生成 Slash 命令文件：
 
-- 自动扫描 `<project-root>/.cursor/commands/opsx-*.md`（排除已带 `-cn` 的文件）。
-- 为每个命令生成对应 `<name>-cn.md`（例如 `opsx-new.md` -> `opsx-new-cn.md`）。
+- 命令目录优先读取环境变量 `OPSX_COMMANDS_DIR`。
+- 未设置时按已存在目录选择：`<project-root>/.claude/commands` -> `<project-root>/.codex/commands`。
+- 若上述目录均不存在，默认创建 `<project-root>/.claude/commands`。
+- 自动扫描所选目录中的 `opsx-*.md`（排除已带 `-cn` 的文件）。
+- 为每个命令生成对应 `<name>-cn.md`。
 
-## 命名约定（重要）
+## 命名约定
 
-本技能区分两类命令命名：
-
-- **Cursor Slash 命令**：统一使用 `/opsx-<action>-cn`（例如 `/opsx-onboard-cn`）。
-- **终端命令**：继续使用标准 `openspec <action>`，不额外创建 `-cn` 包装。
-
-不要使用 `/openspec-<action>-cn` 作为 Slash 命令名，避免与现有 OpenSpec 命令体系不一致。
+- Slash 命令统一使用 `/opsx-<action>-cn`
+- 终端命令继续使用标准 `openspec <action>`
 
 ## 安装与使用
 
-### 初始化（仅 Slash 命令）
+### `commands-init`（仅 Slash 命令）
 
 ```bash
 bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [project-root]
@@ -75,7 +113,8 @@ bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [projec
 
 初始化动作包含两部分：
 
-- 在 `<project-root>/.cursor/commands/` 自动生成全部 `/opsx-*-cn` 命令文件（默认 `<project-root>` 为当前目录）。
+- 选择命令目录（优先 `OPSX_COMMANDS_DIR`，否则按 `.claude/commands` -> `.codex/commands` 选择）。
+- 在所选目录自动生成全部 `/opsx-*-cn` 命令文件。
 
 ### 使用示例
 

@@ -1,9 +1,16 @@
+---
+name: styleguide-router
+description: Use when routing code style requests to the correct language-specific styleguide skill.
+---
+
 <!--
-UpdatedAt: 2026-03-23 15:58:25
-LatestChange: 增加 Rust 路由映射，支持分发到 styleguide-rust。
+UpdatedAt: 2026-04-10 16:11:26 +0800
+LatestChange: 子 skill 默认路径改为 shared-skills，.cursor 路径降级为兼容说明。
 -->
 
 # Code Style Router Skill
+
+本文件通常由顶层入口 `code-styleguide-skills/SKILL.md` 委托调用；若用户显式使用 `/code-styleguide-skills init`，应优先执行顶层 skill 的初始化逻辑，而不是直接进入本 router。
 
 ## 目标
 
@@ -80,5 +87,6 @@ LatestChange: 增加 Rust 路由映射，支持分发到 styleguide-rust。
 
 本仓库各语言子 skill 目录约定：
 
-- 位置：`.cursor/skills/<skill-name>/SKILL.md`
+- 默认位置：`shared-skills/code-styleguide-skills/<skill-name>/SKILL.md`（或仓库内相对路径 `code-styleguide-skills/<skill-name>/SKILL.md`）
+- 兼容位置：`.cursor/shared-skills/code-styleguide-skills/<skill-name>/SKILL.md`（仅历史项目兼容，非默认流程）
 - 命名：`styleguide-<language>`（必要时使用更明确的后缀，例如 `html-css`、`objective-c`）。

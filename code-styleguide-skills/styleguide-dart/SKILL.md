@@ -1,3 +1,8 @@
+---
+name: styleguide-dart
+description: Use when writing or reviewing dart code and you need language-specific style conventions and checks.
+---
+
 <!--
 UpdatedAt: 2026-03-23 16:33:29
 LatestChange: 质量精修：去除重复语义参考链接，统一参考来源到官方主链接。

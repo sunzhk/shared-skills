@@ -1,3 +1,8 @@
+---
+name: styleguide-vimscript
+description: Use when writing or reviewing vimscript code and you need language-specific style conventions and checks.
+---
+
 <!--
 UpdatedAt: 2026-03-23 16:32:59
 LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI工程命令清单，更新矩阵关联一致性。
