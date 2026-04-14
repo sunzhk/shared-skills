@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-14 16:20:00 +0800
-LatestChange: open-spec-cn 命令初始化兼容 `.claude/commands/opsx` 与 `.codex/skills` 目录结构。
+UpdatedAt: 2026-04-14 17:05:00 +0800
+LatestChange: 修复 open-spec-cn 的命令同名折叠问题，并支持 `--all-targets` 同次初始化 Claude + Codex。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -118,6 +118,7 @@ bash /path/to/shared-skills/configure-from-readme.sh [--target claude|codex|both
 
 - 若用户显式要求 `/open-spec-cn init`，执行 `open-spec-cn/scripts/init-open-spec-cn.sh`
 - 若用户显式要求 `/open-spec-cn commands-init`，执行 `open-spec-cn/scripts/install-open-spec-cn.sh`
+- 若用户要求“Claude + Codex 一次同时初始化”，执行 `open-spec-cn/scripts/install-open-spec-cn.sh --all-targets`
 - 其他情况读取 `open-spec-cn/SKILL.md`
 - 命令初始化目录支持 `OPSX_COMMANDS_DIR`、`.claude/commands(/opsx)`、`.codex/commands`、`.codex/skills`
 

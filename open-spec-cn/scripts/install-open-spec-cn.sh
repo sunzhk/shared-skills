@@ -1,10 +1,54 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-project_root="${1:-$PWD}"
+usage() {
+  cat <<'EOF' >&2
+用法:
+  bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [--all-targets] [project-root]
+
+参数:
+  --all-targets  同时初始化所有可用目标（Claude 与 Codex）
+  -h, --help     显示帮助
+EOF
+}
+
+all_targets=0
+positionals=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --all-targets)
+      all_targets=1
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*)
+      echo "[open-spec-cn] unknown option: $1" >&2
+      usage
+      exit 2
+      ;;
+    *)
+      positionals+=("$1")
+      shift
+      ;;
+  esac
+done
+
+if [[ ${#positionals[@]} -gt 1 ]]; then
+  usage
+  exit 2
+fi
+
+project_root="${positionals[0]:-$PWD}"
 updated_at="$(date "+%Y-%m-%d %H:%M:%S %z")"
 generated_commands=0
 generated_codex_skills=0
+target_modes=()
+target_paths=()
+target_details=()
 
 has_codex_openspec_skills() {
   local skills_dir="$1"
@@ -31,11 +75,12 @@ frontmatter_delimiters = 0
 output = []
 inserted_comment = False
 
-def append_cn_suffix(line: str) -> str:
+def append_cn_suffix(line: str, field_name: str) -> str:
     line = line.rstrip("\n")
-    if not line.startswith("description:"):
+    field_prefix = f"{field_name}:"
+    if not line.startswith(field_prefix):
         return line + "\n"
-    value = line[len("description:"):].rstrip()
+    value = line[len(field_prefix):].rstrip()
     if "(CN)" in value:
         return line + "\n"
     if value.endswith('"') or value.endswith("'"):
@@ -43,7 +88,7 @@ def append_cn_suffix(line: str) -> str:
         value = value[:-1].rstrip() + " (CN)" + quote
     else:
         value = value + " (CN)"
-    return "description:" + value + "\n"
+    return field_prefix + value + "\n"
 
 for line in lines:
     if re.match(r"^---\s*$", line):
@@ -71,15 +116,11 @@ for line in lines:
     if in_frontmatter:
         if mode == "commands":
             line = re.sub(
-                r'^(name:\s*["\']?/opsx-[^"\']*?)(["\']?)\s*$',
-                lambda match: (match.group(1) + match.group(2)) if match.group(1).endswith("-cn") else (match.group(1) + "-cn" + match.group(2)),
-                line.rstrip("\n"),
-            ) + "\n"
-            line = re.sub(
                 r'^(id:\s*opsx-[^\s]+)\s*$',
                 lambda match: match.group(1) if match.group(1).endswith("-cn") else match.group(1) + "-cn",
                 line.rstrip("\n"),
             ) + "\n"
+            line = append_cn_suffix(line, "name")
         elif mode == "codex-skills":
             line = re.sub(
                 r'^(name:\s*["\']?openspec-[^"\']*?)(["\']?)\s*$',
@@ -87,7 +128,7 @@ for line in lines:
                 line.rstrip("\n"),
             ) + "\n"
 
-        line = append_cn_suffix(line)
+        line = append_cn_suffix(line, "description")
 
     output.append(line)
 
@@ -97,6 +138,21 @@ if frontmatter_delimiters < 2:
 with open(target_file, "w", encoding="utf-8") as file_handle:
     file_handle.writelines(output)
 PYEOF
+}
+
+add_target() {
+  local mode="$1"
+  local path="$2"
+  local detail="$3"
+  local idx
+  for idx in "${!target_paths[@]}"; do
+    if [[ "${target_modes[$idx]}" == "$mode" && "${target_paths[$idx]}" == "$path" ]]; then
+      return 0
+    fi
+  done
+  target_modes+=("$mode")
+  target_paths+=("$path")
+  target_details+=("$detail")
 }
 
 generate_cn_command_files() {
@@ -155,48 +211,83 @@ generate_cn_codex_skills() {
   done
 }
 
-if [[ -n "${OPSX_COMMANDS_DIR:-}" ]]; then
-  if [[ -d "$OPSX_COMMANDS_DIR" ]] && has_codex_openspec_skills "$OPSX_COMMANDS_DIR"; then
-    run_mode="codex-skills"
-    target_path="$OPSX_COMMANDS_DIR"
-    resolution_detail="OPSX_COMMANDS_DIR(codex skills)"
+resolve_single_target() {
+  if [[ -n "${OPSX_COMMANDS_DIR:-}" ]]; then
+    if [[ -d "$OPSX_COMMANDS_DIR" ]] && has_codex_openspec_skills "$OPSX_COMMANDS_DIR"; then
+      add_target "codex-skills" "$OPSX_COMMANDS_DIR" "OPSX_COMMANDS_DIR(codex skills)"
+    else
+      add_target "commands" "$OPSX_COMMANDS_DIR" "OPSX_COMMANDS_DIR(commands)"
+    fi
+  elif [[ -d "$project_root/.claude/commands/opsx" || -d "$project_root/.claude/commands" ]]; then
+    add_target "commands" "$project_root/.claude/commands" ".claude/commands (opsx namespace supported)"
+  elif [[ -d "$project_root/.codex/commands" ]]; then
+    add_target "commands" "$project_root/.codex/commands" ".codex/commands"
+  elif [[ -d "$project_root/.codex/skills" ]] && has_codex_openspec_skills "$project_root/.codex/skills"; then
+    add_target "codex-skills" "$project_root/.codex/skills" ".codex/skills"
   else
-    run_mode="commands"
-    target_path="$OPSX_COMMANDS_DIR"
-    resolution_detail="OPSX_COMMANDS_DIR(commands)"
+    add_target "commands" "$project_root/.claude/commands/opsx" "fallback create .claude/commands/opsx"
   fi
-elif [[ -d "$project_root/.claude/commands/opsx" || -d "$project_root/.claude/commands" ]]; then
-  run_mode="commands"
-  target_path="$project_root/.claude/commands"
-  resolution_detail=".claude/commands (opsx namespace supported)"
-elif [[ -d "$project_root/.codex/commands" ]]; then
-  run_mode="commands"
-  target_path="$project_root/.codex/commands"
-  resolution_detail=".codex/commands"
-elif [[ -d "$project_root/.codex/skills" ]] && has_codex_openspec_skills "$project_root/.codex/skills"; then
-  run_mode="codex-skills"
-  target_path="$project_root/.codex/skills"
-  resolution_detail=".codex/skills"
+}
+
+resolve_all_targets() {
+  if [[ -n "${OPSX_COMMANDS_DIR:-}" ]]; then
+    if [[ -d "$OPSX_COMMANDS_DIR" ]] && has_codex_openspec_skills "$OPSX_COMMANDS_DIR"; then
+      add_target "codex-skills" "$OPSX_COMMANDS_DIR" "OPSX_COMMANDS_DIR(codex skills)"
+    else
+      add_target "commands" "$OPSX_COMMANDS_DIR" "OPSX_COMMANDS_DIR(commands)"
+    fi
+  fi
+
+  if [[ -d "$project_root/.claude/commands/opsx" || -d "$project_root/.claude/commands" ]]; then
+    add_target "commands" "$project_root/.claude/commands" ".claude/commands (opsx namespace supported)"
+  else
+    add_target "commands" "$project_root/.claude/commands/opsx" "fallback create .claude/commands/opsx"
+  fi
+
+  if [[ -d "$project_root/.codex/commands" ]]; then
+    add_target "commands" "$project_root/.codex/commands" ".codex/commands"
+  fi
+
+  if [[ -d "$project_root/.codex/skills" ]] && has_codex_openspec_skills "$project_root/.codex/skills"; then
+    add_target "codex-skills" "$project_root/.codex/skills" ".codex/skills"
+  fi
+}
+
+if [[ "$all_targets" -eq 1 ]]; then
+  resolve_all_targets
 else
-  run_mode="commands"
-  target_path="$project_root/.claude/commands/opsx"
-  resolution_detail="fallback create .claude/commands/opsx"
+  resolve_single_target
 fi
 
-if [[ "$run_mode" == "commands" ]]; then
-  mkdir -p "$target_path"
-  generate_cn_command_files "$target_path"
-  echo "[open-spec-cn] mode: commands"
-  echo "[open-spec-cn] generated cn slash commands: $generated_commands"
-  echo "[open-spec-cn] output directory: $target_path"
-else
-  mkdir -p "$target_path"
-  generate_cn_codex_skills "$target_path"
-  echo "[open-spec-cn] mode: codex-skills"
-  echo "[open-spec-cn] generated cn codex skills: $generated_codex_skills"
-  echo "[open-spec-cn] output directory: $target_path"
-fi
+for idx in "${!target_modes[@]}"; do
+  mode="${target_modes[$idx]}"
+  path="${target_paths[$idx]}"
+  detail="${target_details[$idx]}"
+
+  before_commands="$generated_commands"
+  before_codex_skills="$generated_codex_skills"
+
+  mkdir -p "$path"
+  if [[ "$mode" == "commands" ]]; then
+    generate_cn_command_files "$path"
+  else
+    generate_cn_codex_skills "$path"
+  fi
+
+  delta_commands=$((generated_commands - before_commands))
+  delta_codex_skills=$((generated_codex_skills - before_codex_skills))
+  echo "[open-spec-cn] target: $detail"
+  echo "[open-spec-cn] mode: $mode"
+  echo "[open-spec-cn] generated in target: commands=$delta_commands, codex_skills=$delta_codex_skills"
+  echo "[open-spec-cn] output directory: $path"
+done
 
 echo "[open-spec-cn] directory resolution: OPSX_COMMANDS_DIR > .claude/commands(/opsx) > .codex/commands > .codex/skills"
-echo "[open-spec-cn] selected: $resolution_detail"
+if [[ "$all_targets" -eq 1 ]]; then
+  echo "[open-spec-cn] selected: --all-targets (${#target_modes[@]} targets)"
+else
+  echo "[open-spec-cn] selected: ${target_details[0]}"
+fi
+echo "[open-spec-cn] generated cn slash commands: $generated_commands"
+echo "[open-spec-cn] generated cn codex skills: $generated_codex_skills"
 echo "[open-spec-cn] done. no terminal wrapper commands are installed."

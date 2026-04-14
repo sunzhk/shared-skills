@@ -32,7 +32,7 @@ build_section() {
 - Skill path (Codex): `.codex/shared-skills/open-spec-cn/SKILL.md`
 - Use when the user asks for OpenSpec Chinese writing rules, `MUST/SHALL` requirement enforcement, or `/opsx-*-cn` command generation.
 - Subcommand `init`: create or refresh this section in `AGENTS.md`.
-- Subcommand `commands-init`: run `open-spec-cn/scripts/install-open-spec-cn.sh` to generate `/opsx-*-cn` command files in the project.
+- Subcommand `commands-init`: run `open-spec-cn/scripts/install-open-spec-cn.sh` to generate `-cn` commands/skills in the project (add `--all-targets` to initialize Claude + Codex together).
 - Default action: apply Chinese OpenSpec rules, keep `Purpose` free of `TBD`, and make validation steps explicit.
 - Command resolution for `commands-init`: `OPSX_COMMANDS_DIR` > `.claude/commands(/opsx)` > `.codex/commands` > `.codex/skills`.
 EOF

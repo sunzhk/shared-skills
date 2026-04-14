@@ -1,7 +1,7 @@
 # shared-skills（给人看的说明）
 <!--
-UpdatedAt: 2026-04-14 16:20:00 +0800
-LatestChange: open-spec-cn 命令初始化兼容 `.claude/commands/opsx` 与 `.codex/skills` 目录结构。
+UpdatedAt: 2026-04-14 17:05:00 +0800
+LatestChange: 修复 open-spec-cn 的命令同名折叠问题，并支持 `--all-targets` 同次初始化 Claude + Codex。
 -->
 
 本文档面向开发者与仓库维护者，说明 shared-skills 的用途、安装方式、仓库内验证方式，以及发布前需要完成的检查。
@@ -130,6 +130,7 @@ bash /path/to/shared-skills/configure-from-readme.sh [--target claude|codex|both
 
 - Claude 命令目录：基于 `opsx-*.md` 或 `opsx/*.md` 生成 `*-cn.md`。
 - Codex skills 目录：基于 `openspec-*` 生成 `openspec-*-cn` skills 目录。
+- 若需一次初始化多个目标，使用 `--all-targets`。
 
 ## 发布前检查
 

@@ -4,8 +4,8 @@ description: Use when you need Chinese guidance for OpenSpec workflows, command 
 ---
 
 <!--
-UpdatedAt: 2026-04-14 16:20:00 +0800
-LatestChange: `commands-init` 增强为兼容 `.claude/commands/opsx` 与 `.codex/skills` 两种目录形态。
+UpdatedAt: 2026-04-14 17:05:00 +0800
+LatestChange: 修复 `commands-init` 在 Claude 命令 name 同名折叠问题，并新增 `--all-targets` 同时初始化 Claude + Codex。
 -->
 
 # open-spec-cn
@@ -58,6 +58,12 @@ bash /path/to/shared-skills/open-spec-cn/scripts/init-open-spec-cn.sh [project-r
 bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [project-root]
 ```
 
+如需同一次命令同时初始化 Claude + Codex（若项目中存在对应目录）：
+
+```bash
+bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh --all-targets [project-root]
+```
+
 ### 默认动作
 
 当子命令不是 `init` 或 `commands-init` 时，按本文件其余规则执行正常的 OpenSpec 中文规范辅助流程。
@@ -96,6 +102,7 @@ rg "TBD - created by archiving|^TBD$" openspec/specs
 - 未设置时按已存在目录选择：`<project-root>/.claude/commands`（兼容 `opsx/` 子目录）-> `<project-root>/.codex/commands` -> `<project-root>/.codex/skills`。
 - 若上述目录均不存在，默认创建 `<project-root>/.claude/commands/opsx`。
 - Claude 命令模式：自动扫描 `opsx-*.md` 或 `opsx/*.md`（排除已带 `-cn` 的文件），生成对应 `<name>-cn.md`。
+- Claude 命令模式会为 frontmatter 的 `name:` 与 `description:` 追加 `(CN)`，避免命令面板按同名聚合时隐藏 `-cn` 条目。
 - Codex skills 模式：自动扫描 `openspec-*` skill 目录，为每个目录生成 `openspec-*-cn` 副本并更新 `SKILL.md` 元信息。
 
 ## 命名约定
@@ -115,6 +122,7 @@ bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [projec
 
 - 选择目标目录（优先 `OPSX_COMMANDS_DIR`，否则按 `.claude/commands(/opsx)` -> `.codex/commands` -> `.codex/skills` 选择）。
 - 生成 `-cn` 版本：Claude 下生成 `*.md` 命令文件，Codex 下生成 `openspec-*-cn` skills。
+- 需要并行初始化多个目标时，使用 `--all-targets`。
 
 ### 使用示例
 

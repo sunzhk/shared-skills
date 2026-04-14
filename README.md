@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-14 16:20:00 +0800
-LatestChange: open-spec-cn 命令初始化兼容 `.claude/commands/opsx` 与 `.codex/skills` 目录结构。
+UpdatedAt: 2026-04-14 17:05:00 +0800
+LatestChange: 修复 open-spec-cn 的命令同名折叠问题，并支持 `--all-targets` 同次初始化 Claude + Codex。
 -->
 
 # shared-skills 总纲
