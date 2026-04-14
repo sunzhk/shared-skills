@@ -4,21 +4,27 @@ set -euo pipefail
 usage() {
   cat <<'EOF' >&2
 用法:
-  bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [--all-targets] [project-root]
+  bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [--all-targets] [--codex-prompts] [project-root]
 
 参数:
-  --all-targets  同时初始化所有可用目标（Claude 与 Codex）
+  --all-targets   同时初始化所有可用目标（Claude / Codex skills / Codex prompts）
+  --codex-prompts 初始化 Codex App 全局 prompts（默认目录: ~/.codex/prompts）
   -h, --help     显示帮助
 EOF
 }
 
 all_targets=0
+codex_prompts=0
 positionals=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --all-targets)
       all_targets=1
+      shift
+      ;;
+    --codex-prompts)
+      codex_prompts=1
       shift
       ;;
     -h|--help)
@@ -46,9 +52,11 @@ project_root="${positionals[0]:-$PWD}"
 updated_at="$(date "+%Y-%m-%d %H:%M:%S %z")"
 generated_commands=0
 generated_codex_skills=0
+generated_codex_prompts=0
 target_modes=()
 target_paths=()
 target_details=()
+prompts_dir="${OPSX_PROMPTS_DIR:-$HOME/.codex/prompts}"
 
 has_codex_openspec_skills() {
   local skills_dir="$1"
@@ -127,6 +135,8 @@ for line in lines:
                 lambda match: (match.group(1) + match.group(2)) if match.group(1).endswith("-cn") else (match.group(1) + "-cn" + match.group(2)),
                 line.rstrip("\n"),
             ) + "\n"
+        elif mode == "codex-prompts":
+            pass
 
         line = append_cn_suffix(line, "description")
 
@@ -211,7 +221,35 @@ generate_cn_codex_skills() {
   done
 }
 
+generate_cn_codex_prompts() {
+  local prompts_root="$1"
+  local source_list
+  source_list="$(
+    {
+      if [[ -d "$prompts_root" ]]; then
+        find "$prompts_root" -maxdepth 1 -type f -name "opsx-*.md" ! -name "*-cn.md"
+      fi
+    } | sort -u
+  )"
+
+  while IFS= read -r src; do
+    if [[ -z "$src" || ! -f "$src" ]]; then
+      continue
+    fi
+    local base_name
+    local target
+    base_name="$(basename "$src" .md)"
+    target="$(dirname "$src")/${base_name}-cn.md"
+    transform_markdown "$src" "$target" "codex-prompts"
+    generated_codex_prompts=$((generated_codex_prompts + 1))
+  done <<< "$source_list"
+}
+
 resolve_single_target() {
+  if [[ "$codex_prompts" -eq 1 || -n "${OPSX_PROMPTS_DIR:-}" ]]; then
+    add_target "codex-prompts" "$prompts_dir" "codex prompts (${prompts_dir})"
+  fi
+
   if [[ -n "${OPSX_COMMANDS_DIR:-}" ]]; then
     if [[ -d "$OPSX_COMMANDS_DIR" ]] && has_codex_openspec_skills "$OPSX_COMMANDS_DIR"; then
       add_target "codex-skills" "$OPSX_COMMANDS_DIR" "OPSX_COMMANDS_DIR(codex skills)"
@@ -230,6 +268,8 @@ resolve_single_target() {
 }
 
 resolve_all_targets() {
+  add_target "codex-prompts" "$prompts_dir" "codex prompts (${prompts_dir})"
+
   if [[ -n "${OPSX_COMMANDS_DIR:-}" ]]; then
     if [[ -d "$OPSX_COMMANDS_DIR" ]] && has_codex_openspec_skills "$OPSX_COMMANDS_DIR"; then
       add_target "codex-skills" "$OPSX_COMMANDS_DIR" "OPSX_COMMANDS_DIR(codex skills)"
@@ -266,23 +306,28 @@ for idx in "${!target_modes[@]}"; do
 
   before_commands="$generated_commands"
   before_codex_skills="$generated_codex_skills"
+  before_codex_prompts="$generated_codex_prompts"
 
   mkdir -p "$path"
   if [[ "$mode" == "commands" ]]; then
     generate_cn_command_files "$path"
-  else
+  elif [[ "$mode" == "codex-skills" ]]; then
     generate_cn_codex_skills "$path"
+  else
+    generate_cn_codex_prompts "$path"
   fi
 
   delta_commands=$((generated_commands - before_commands))
   delta_codex_skills=$((generated_codex_skills - before_codex_skills))
+  delta_codex_prompts=$((generated_codex_prompts - before_codex_prompts))
   echo "[open-spec-cn] target: $detail"
   echo "[open-spec-cn] mode: $mode"
-  echo "[open-spec-cn] generated in target: commands=$delta_commands, codex_skills=$delta_codex_skills"
+  echo "[open-spec-cn] generated in target: commands=$delta_commands, codex_skills=$delta_codex_skills, codex_prompts=$delta_codex_prompts"
   echo "[open-spec-cn] output directory: $path"
 done
 
 echo "[open-spec-cn] directory resolution: OPSX_COMMANDS_DIR > .claude/commands(/opsx) > .codex/commands > .codex/skills"
+echo "[open-spec-cn] codex prompts resolution (enabled when --codex-prompts or OPSX_PROMPTS_DIR is set, and always enabled by --all-targets): OPSX_PROMPTS_DIR > ~/.codex/prompts"
 if [[ "$all_targets" -eq 1 ]]; then
   echo "[open-spec-cn] selected: --all-targets (${#target_modes[@]} targets)"
 else
@@ -290,4 +335,5 @@ else
 fi
 echo "[open-spec-cn] generated cn slash commands: $generated_commands"
 echo "[open-spec-cn] generated cn codex skills: $generated_codex_skills"
+echo "[open-spec-cn] generated cn codex prompts: $generated_codex_prompts"
 echo "[open-spec-cn] done. no terminal wrapper commands are installed."
