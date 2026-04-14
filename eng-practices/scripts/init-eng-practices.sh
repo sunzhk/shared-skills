@@ -2,6 +2,8 @@
 set -euo pipefail
 
 skill_name="eng-practices"
+use_claude=0
+use_codex=0
 
 usage() {
   cat <<'EOF' >&2
@@ -24,15 +26,55 @@ resolve_paths() {
   agents_md="${target_root}/AGENTS.md"
 }
 
-build_section() {
-  cat <<'EOF'
-## Shared Skill: `eng-practices`（由 `/eng-practices init` 生成）
+detect_supported_targets() {
+  if [[ -d "${target_root}/.claude" || -d "${target_root}/.claude/commands" || -d "${target_root}/.claude/shared-skills" ]]; then
+    use_claude=1
+  fi
 
-- Skill path (Claude): `.claude/shared-skills/eng-practices/SKILL.md`
-- Skill path (Codex): `.codex/shared-skills/eng-practices/SKILL.md`
+  if [[ -d "${target_root}/.codex" || -d "${target_root}/.codex/commands" || -d "${target_root}/.codex/skills" || -d "${target_root}/.codex/prompts" || -d "${target_root}/.codex/shared-skills" ]]; then
+    use_codex=1
+  fi
+
+  if [[ "$use_claude" -eq 0 && "$use_codex" -eq 0 ]]; then
+    use_claude=1
+    use_codex=1
+    echo "[${skill_name}] 未检测到 .claude/.codex 目录，回退为 Claude + Codex 双 target 初始化。" >&2
+  fi
+}
+
+build_skill_path_lines() {
+  if [[ "$use_claude" -eq 1 ]]; then
+    echo "- Skill path (Claude): \`.claude/shared-skills/eng-practices/SKILL.md\`"
+  fi
+  if [[ "$use_codex" -eq 1 ]]; then
+    echo "- Skill path (Codex): \`.codex/shared-skills/eng-practices/SKILL.md\`"
+  fi
+}
+
+build_target_label() {
+  if [[ "$use_claude" -eq 1 && "$use_codex" -eq 1 ]]; then
+    echo "Claude + Codex"
+  elif [[ "$use_claude" -eq 1 ]]; then
+    echo "Claude"
+  else
+    echo "Codex"
+  fi
+}
+
+build_section() {
+  local skill_path_lines
+  local target_label
+  skill_path_lines="$(build_skill_path_lines)"
+  target_label="$(build_target_label)"
+
+  cat <<EOF
+## Shared Skill: \`eng-practices\`（由 \`/eng-practices init\` 生成）
+
+${skill_path_lines}
+- Detected targets: ${target_label}.
 - Use when the user asks for PR/CL review strategy, review wording, Required/Nit/Optional/FYI grading, conflict handling, small CL splitting, or review acceleration.
-- Subcommand `init`: create or refresh this section in `AGENTS.md`.
-- Default action: apply the `eng-practices` review workflow directly and keep conclusions actionable.
+- Subcommand \`init\`: create or refresh this section in \`AGENTS.md\`.
+- Default action: apply the \`eng-practices\` review workflow directly and keep conclusions actionable.
 - Priority: project review rules > this skill > official guidance > personal preference.
 EOF
 }
@@ -74,6 +116,7 @@ PYEOF
 main() {
   check_args "$@"
   resolve_paths "${1:-}"
+  detect_supported_targets
   upsert_section "$(build_section)"
 }
 

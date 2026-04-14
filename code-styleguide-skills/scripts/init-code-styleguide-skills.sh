@@ -2,6 +2,8 @@
 set -euo pipefail
 
 skill_name="code-styleguide-skills"
+use_claude=0
+use_codex=0
 
 usage() {
   cat <<'EOF' >&2
@@ -24,15 +26,55 @@ resolve_paths() {
   agents_md="${target_root}/AGENTS.md"
 }
 
-build_section() {
-  cat <<'EOF'
-## Shared Skill: `code-styleguide-skills`（由 `/code-styleguide-skills init` 生成）
+detect_supported_targets() {
+  if [[ -d "${target_root}/.claude" || -d "${target_root}/.claude/commands" || -d "${target_root}/.claude/shared-skills" ]]; then
+    use_claude=1
+  fi
 
-- Skill path (Claude): `.claude/shared-skills/code-styleguide-skills/SKILL.md`
-- Skill path (Codex): `.codex/shared-skills/code-styleguide-skills/SKILL.md`
+  if [[ -d "${target_root}/.codex" || -d "${target_root}/.codex/commands" || -d "${target_root}/.codex/skills" || -d "${target_root}/.codex/prompts" || -d "${target_root}/.codex/shared-skills" ]]; then
+    use_codex=1
+  fi
+
+  if [[ "$use_claude" -eq 0 && "$use_codex" -eq 0 ]]; then
+    use_claude=1
+    use_codex=1
+    echo "[${skill_name}] 未检测到 .claude/.codex 目录，回退为 Claude + Codex 双 target 初始化。" >&2
+  fi
+}
+
+build_skill_path_lines() {
+  if [[ "$use_claude" -eq 1 ]]; then
+    echo "- Skill path (Claude): \`.claude/shared-skills/code-styleguide-skills/SKILL.md\`"
+  fi
+  if [[ "$use_codex" -eq 1 ]]; then
+    echo "- Skill path (Codex): \`.codex/shared-skills/code-styleguide-skills/SKILL.md\`"
+  fi
+}
+
+build_target_label() {
+  if [[ "$use_claude" -eq 1 && "$use_codex" -eq 1 ]]; then
+    echo "Claude + Codex"
+  elif [[ "$use_claude" -eq 1 ]]; then
+    echo "Claude"
+  else
+    echo "Codex"
+  fi
+}
+
+build_section() {
+  local skill_path_lines
+  local target_label
+  skill_path_lines="$(build_skill_path_lines)"
+  target_label="$(build_target_label)"
+
+  cat <<EOF
+## Shared Skill: \`code-styleguide-skills\`（由 \`/code-styleguide-skills init\` 生成）
+
+${skill_path_lines}
+- Detected targets: ${target_label}.
 - Use when the user asks for code style consistency, naming, comments, readability, or language-specific style checks.
-- Subcommand `init`: create or refresh this section in `AGENTS.md`.
-- Default action: delegate to `code-styleguide-skills/styleguide-router/SKILL.md`, then route to the matching `styleguide-*` sub-skill.
+- Subcommand \`init\`: create or refresh this section in \`AGENTS.md\`.
+- Default action: delegate to \`code-styleguide-skills/styleguide-router/SKILL.md\`, then route to the matching \`styleguide-*\` sub-skill.
 - Priority: project style rules > this skill > official language style guides > personal preference.
 EOF
 }
@@ -74,6 +116,7 @@ PYEOF
 main() {
   check_args "$@"
   resolve_paths "${1:-}"
+  detect_supported_targets
   upsert_section "$(build_section)"
 }
 
