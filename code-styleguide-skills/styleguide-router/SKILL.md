@@ -4,8 +4,8 @@ description: Use when routing code style requests to the correct language-specif
 ---
 
 <!--
-UpdatedAt: 2026-04-10 16:11:26 +0800
-LatestChange: 子 skill 默认路径改为 shared-skills，.cursor 路径降级为兼容说明。
+UpdatedAt: 2026-04-14
+LatestChange: 补充 Kotlin 分发项，支持 Kotlin/Java 混编空值安全规则路由。
 -->
 
 # Code Style Router Skill
@@ -56,6 +56,7 @@ LatestChange: 子 skill 默认路径改为 shared-skills，.cursor 路径降级�
 - HTML/CSS → `styleguide-html-css`
 - JavaScript → `styleguide-javascript`
 - Java → `styleguide-java`
+- Kotlin → `styleguide-kotlin`
 - JSON → `styleguide-json`
 - Markdown → `styleguide-markdown`
 - Objective-C → `styleguide-objective-c`

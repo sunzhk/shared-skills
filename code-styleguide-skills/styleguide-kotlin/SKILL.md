@@ -4,8 +4,8 @@ description: Use when writing or reviewing kotlin code and you need language-spe
 ---
 
 <!--
-UpdatedAt: 2026-03-23 16:32:59
-LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI工程命令清单，更新矩阵关联一致性。
+UpdatedAt: 2026-04-14
+LatestChange: 补充 Kotlin/Java 混编空值安全规则，要求未标注 Java 返回值在 Kotlin 边界处显式收敛。
 -->
 
 ## 目标
@@ -93,6 +93,18 @@ LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI
   - 语法：`val 属性: 对外类型 field = 实现类型实例`（例如 `val city: StateFlow<String> field = MutableStateFlow("")`）。
   - 好处：消除 `_xxx` / `xxx` 双属性、支持在属性作用域内智能转换、减少样板代码。
   - 典型场景：`MutableStateFlow` / `StateFlow`、`ArrayList` / `List`、内部可变集合对外只读暴露等。
+
+### Kotlin/Java 混编空值安全（Nullability interop）
+
+- **未标注 Java 返回值**：Kotlin 调用未标注 nullability 的 Java API 时，返回值视为不可信平台类型（`T!`），不得直接当作非空业务值继续传播。
+- **边界处显式收敛**：平台类型必须在首次接收处完成以下之一，再进入后续业务逻辑：
+  - 显式声明为可空类型：`val name: String? = javaApi.getName()`。
+  - 立即失败并说明上下文：`val name = requireNotNull(javaApi.getName()) { "javaApi.getName() returned null" }`。
+  - 提供默认值或降级策略：`val name = javaApi.getName() ?: ""`。
+  - 转换为领域对象、`Result` 或 sealed state，避免平台类型跨层透传。
+- **优先修源头**：自研 Java API 应补齐 `@Nullable` / `@NonNull`（或项目统一的 nullability 注解）；第三方或遗留 Java API 应优先用 Kotlin facade/wrapper 在边界层消化空值风险。
+- **限制 `!!`**：禁止无说明地对 Java 平台类型使用 `!!`；确需断言非空时，优先使用带错误信息的 `requireNotNull` / `checkNotNull`。
+- **避免可空性污染**：不要求所有后续链路都按 nullable 传播；推荐在 repository/adapter/gateway/SDK wrapper 等边界层收敛成明确的 `T` 或 `T?`。
 
 ### 空白（Whitespace）
 

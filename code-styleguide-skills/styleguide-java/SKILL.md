@@ -4,8 +4,8 @@ description: Use when writing or reviewing java code and you need language-speci
 ---
 
 <!--
-UpdatedAt: 2026-03-23 16:32:59
-LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI工程命令清单，更新矩阵关联一致性。
+UpdatedAt: 2026-04-14
+LatestChange: 补充 Kotlin/Java 混编场景的 Java nullability 注解要求，减少 Kotlin 平台类型风险。
 -->
 
 ## 目标
@@ -149,6 +149,7 @@ LatestChange: 质量精修：统一参考链接格式并去重，补充本地/CI
 - 捕获异常不应忽略：若确实什么都不做，应写注释说明理由。
 - static 成员：需要限定时用类名限定，不用实例/表达式限定。
 - 不覆盖 `Object.finalize`（finalization 机制计划移除）。
+- Kotlin/Java 混编项目中，Java 对外 API 的返回值、参数和字段应使用项目统一的 nullability 注解（如 `@Nullable` / `@NonNull`）表达契约；可能为 `null` 的值不得标为非空，保证 Kotlin 侧不会被迫依赖不可信平台类型（`T!`）。
 
 ### Javadoc（最小要求）
 
