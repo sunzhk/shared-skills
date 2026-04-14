@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 四个入口技能统一支持 init 子命令，code-styleguide-skills 与 unit-test-guide-skills 改为顶层入口。
+UpdatedAt: 2026-04-14 15:57:00 +0800
+LatestChange: 四个入口技能的 init 脚本改为各自自包含，并移除公共 init-shared-skill.sh 依赖。
 -->
 
 # shared-skills 总纲
@@ -65,3 +65,15 @@ npx skills add sunzhk/shared-skills --skill open-spec-cn
 `configure-from-readme.sh` 现在只承担一件事：读取仓库根 `README.md` 与业务项目 `README.md` 中的 `<!-- shared-skills-config -->` 块，校验入口技能，并按 `--target claude|codex|both` 写入业务项目 `AGENTS.md` 的 `## Shared Skills` 节。
 
 它不是发布或安装入口；正式分发与安装以 skills.sh 为准。
+
+## 本次提交建议（Commit Message）
+
+```text
+refactor(init): make each shared skill self-initializing and remove shared init script
+```
+
+可选中文版本：
+
+```text
+重构(init): 四个共享技能改为自包含初始化，移除公共 init-shared-skill 脚本
+```
