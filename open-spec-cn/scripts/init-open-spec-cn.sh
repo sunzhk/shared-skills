@@ -34,7 +34,7 @@ build_section() {
 - Subcommand `init`: create or refresh this section in `AGENTS.md`.
 - Subcommand `commands-init`: run `open-spec-cn/scripts/install-open-spec-cn.sh` to generate `/opsx-*-cn` command files in the project.
 - Default action: apply Chinese OpenSpec rules, keep `Purpose` free of `TBD`, and make validation steps explicit.
-- Command directory priority for `commands-init`: `OPSX_COMMANDS_DIR` > `.claude/commands` > `.codex/commands`.
+- Command resolution for `commands-init`: `OPSX_COMMANDS_DIR` > `.claude/commands(/opsx)` > `.codex/commands` > `.codex/skills`.
 EOF
 }
 

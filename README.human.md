@@ -1,7 +1,7 @@
 # shared-skills（给人看的说明）
 <!--
-UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 四个入口技能统一支持 init 子命令，code-styleguide-skills 与 unit-test-guide-skills 改为顶层入口。
+UpdatedAt: 2026-04-14 16:20:00 +0800
+LatestChange: open-spec-cn 命令初始化兼容 `.claude/commands/opsx` 与 `.codex/skills` 目录结构。
 -->
 
 本文档面向开发者与仓库维护者，说明 shared-skills 的用途、安装方式、仓库内验证方式，以及发布前需要完成的检查。
@@ -119,13 +119,17 @@ bash /path/to/shared-skills/configure-from-readme.sh [--target claude|codex|both
 
 ## open-spec-cn 命令初始化
 
-`open-spec-cn/scripts/install-open-spec-cn.sh` 的目录解析规则只有三层：
+`open-spec-cn/scripts/install-open-spec-cn.sh` 的目录解析规则为：
 
 1. `OPSX_COMMANDS_DIR`
-2. `<project-root>/.claude/commands`
+2. `<project-root>/.claude/commands`（兼容 `<project-root>/.claude/commands/opsx`）
 3. `<project-root>/.codex/commands`
+4. `<project-root>/.codex/skills`
 
-若以上路径都不存在，脚本会创建 `<project-root>/.claude/commands`，然后在该目录下基于已有 `opsx-*.md` 生成 `opsx-*-cn.md`。
+若以上路径都不存在，脚本会创建 `<project-root>/.claude/commands/opsx`。生成策略如下：
+
+- Claude 命令目录：基于 `opsx-*.md` 或 `opsx/*.md` 生成 `*-cn.md`。
+- Codex skills 目录：基于 `openspec-*` 生成 `openspec-*-cn` skills 目录。
 
 ## 发布前检查
 

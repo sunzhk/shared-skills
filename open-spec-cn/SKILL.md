@@ -4,8 +4,8 @@ description: Use when you need Chinese guidance for OpenSpec workflows, command 
 ---
 
 <!--
-UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 增加 `/open-spec-cn init` 与 `commands-init` 子命令，分别负责写入 AGENTS.md 与生成 Slash 命令。
+UpdatedAt: 2026-04-14 16:20:00 +0800
+LatestChange: `commands-init` 增强为兼容 `.claude/commands/opsx` 与 `.codex/skills` 两种目录形态。
 -->
 
 # open-spec-cn
@@ -49,8 +49,8 @@ bash /path/to/shared-skills/open-spec-cn/scripts/init-open-spec-cn.sh [project-r
 当用户显式要求 `/open-spec-cn commands-init` 时：
 
 1. 运行 `scripts/install-open-spec-cn.sh`。
-2. 在目标项目的命令目录中生成 `/opsx-*-cn` 文件。
-3. 返回所选命令目录与生成数量。
+2. 在目标项目中生成 `-cn` 版本 OpenSpec 命令（Claude 命令文件或 Codex skills）。
+3. 返回所选目录与生成数量。
 
 执行命令：
 
@@ -92,11 +92,11 @@ rg "TBD - created by archiving|^TBD$" openspec/specs
 
 本技能提供 `scripts/install-open-spec-cn.sh`，仅负责在项目内生成 Slash 命令文件：
 
-- 命令目录优先读取环境变量 `OPSX_COMMANDS_DIR`。
-- 未设置时按已存在目录选择：`<project-root>/.claude/commands` -> `<project-root>/.codex/commands`。
-- 若上述目录均不存在，默认创建 `<project-root>/.claude/commands`。
-- 自动扫描所选目录中的 `opsx-*.md`（排除已带 `-cn` 的文件）。
-- 为每个命令生成对应 `<name>-cn.md`。
+- 优先读取环境变量 `OPSX_COMMANDS_DIR`。
+- 未设置时按已存在目录选择：`<project-root>/.claude/commands`（兼容 `opsx/` 子目录）-> `<project-root>/.codex/commands` -> `<project-root>/.codex/skills`。
+- 若上述目录均不存在，默认创建 `<project-root>/.claude/commands/opsx`。
+- Claude 命令模式：自动扫描 `opsx-*.md` 或 `opsx/*.md`（排除已带 `-cn` 的文件），生成对应 `<name>-cn.md`。
+- Codex skills 模式：自动扫描 `openspec-*` skill 目录，为每个目录生成 `openspec-*-cn` 副本并更新 `SKILL.md` 元信息。
 
 ## 命名约定
 
@@ -113,8 +113,8 @@ bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [projec
 
 初始化动作包含两部分：
 
-- 选择命令目录（优先 `OPSX_COMMANDS_DIR`，否则按 `.claude/commands` -> `.codex/commands` 选择）。
-- 在所选目录自动生成全部 `/opsx-*-cn` 命令文件。
+- 选择目标目录（优先 `OPSX_COMMANDS_DIR`，否则按 `.claude/commands(/opsx)` -> `.codex/commands` -> `.codex/skills` 选择）。
+- 生成 `-cn` 版本：Claude 下生成 `*.md` 命令文件，Codex 下生成 `openspec-*-cn` skills。
 
 ### 使用示例
 

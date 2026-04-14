@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-14 15:57:00 +0800
-LatestChange: 四个入口技能的 init 脚本改为各自自包含，并移除公共 init-shared-skill.sh 依赖。
+UpdatedAt: 2026-04-14 16:20:00 +0800
+LatestChange: open-spec-cn 命令初始化兼容 `.claude/commands/opsx` 与 `.codex/skills` 目录结构。
 -->
 
 # shared-skills 总纲
@@ -16,7 +16,7 @@ shared_skill_links=eng-practices,code-styleguide-skills,unit-test-guide-skills,o
 
 - 分发主路径只有 `skills.sh`。
 - `configure-from-readme.sh` 只接受 `shared_skill_links`，遇到旧键或未知键会直接失败。
-- `open-spec-cn` 只支持 `OPSX_COMMANDS_DIR`、`.claude/commands`、`.codex/commands` 三种命令目录解析路径。
+- `open-spec-cn` 的命令初始化支持 `OPSX_COMMANDS_DIR`、`.claude/commands(/opsx)`、`.codex/commands`、`.codex/skills` 四种目录形态。
 - 回滚方式只依赖 git 版本回退，不依赖脚本中的兼容分支。
 
 ## 唯一安装路径

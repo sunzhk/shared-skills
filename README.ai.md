@@ -1,6 +1,6 @@
 <!--
-UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 四个入口技能统一支持 init 子命令，code-styleguide-skills 与 unit-test-guide-skills 改为顶层入口。
+UpdatedAt: 2026-04-14 16:20:00 +0800
+LatestChange: open-spec-cn 命令初始化兼容 `.claude/commands/opsx` 与 `.codex/skills` 目录结构。
 -->
 
 # shared-skills（给 AI 看的运行规则）
@@ -119,7 +119,7 @@ bash /path/to/shared-skills/configure-from-readme.sh [--target claude|codex|both
 - 若用户显式要求 `/open-spec-cn init`，执行 `open-spec-cn/scripts/init-open-spec-cn.sh`
 - 若用户显式要求 `/open-spec-cn commands-init`，执行 `open-spec-cn/scripts/install-open-spec-cn.sh`
 - 其他情况读取 `open-spec-cn/SKILL.md`
-- 命令目录只支持 `OPSX_COMMANDS_DIR`、`.claude/commands`、`.codex/commands`
+- 命令初始化目录支持 `OPSX_COMMANDS_DIR`、`.claude/commands(/opsx)`、`.codex/commands`、`.codex/skills`
 
 ### 3.5 `configure-from-readme.sh`
 
