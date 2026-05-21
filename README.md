@@ -73,7 +73,7 @@ npx skills update -g
 | `code-styleguide-skills` | 多语言代码风格建议，入口会委托 `styleguide-router` 分发到具体语言。 |
 | `unit-test-guide-skills` | 单元测试规范建议，入口会委托 `unit-test-router` 分发到 Android / iOS / 微信小程序子技能。 |
 | `open-spec-cn` | OpenSpec 中文规范、Requirement 关键词约束、`Purpose` 占位清理，以及 `/opsx-*-cn` 命令生成。 |
-| `git-commit-message` | 生成、检查或改写 `<type>: <subject>` 格式的 Git commit message。 |
+| `git-commit-message` | 生成、检查或改写 `<type><subject>` 格式的 Git commit message，默认优先使用中文 subject。 |
 
 ## Usage Notes
 
