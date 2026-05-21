@@ -30,20 +30,6 @@ LatestChange: `commands-init` 新增 Codex App prompts 目标（`OPSX_PROMPTS_DI
 
 ## 子命令
 
-### `init`
-
-当用户显式要求 `/open-spec-cn init` 时：
-
-1. 运行 `scripts/init-open-spec-cn.sh`。
-2. 在当前项目根目录创建或更新 `AGENTS.md` 中的 `open-spec-cn` 说明块。
-3. 返回实际写入的目标文件路径。
-
-执行命令：
-
-```bash
-bash /path/to/shared-skills/open-spec-cn/scripts/init-open-spec-cn.sh [project-root]
-```
-
 ### `commands-init`
 
 当用户显式要求 `/open-spec-cn commands-init` 时：
@@ -79,7 +65,7 @@ bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh --codex
 
 ### 默认动作
 
-当子命令不是 `init` 或 `commands-init` 时，按本文件其余规则执行正常的 OpenSpec 中文规范辅助流程。
+当子命令不是 `commands-init` 时，按本文件其余规则执行正常的 OpenSpec 中文规范辅助流程。
 
 ## 规范（强制）
 

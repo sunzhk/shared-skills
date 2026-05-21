@@ -9,7 +9,7 @@ description: >
 
 <!--
 UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 增加 `/eng-practices init` 子命令，用于往 AGENTS.md 写入技能说明。
+LatestChange: 移除 AGENTS.md 自初始化入口，安装与管理统一交给 skills.sh / npx skills add。
 -->
 
 # eng-practices Skill
@@ -46,25 +46,9 @@ LatestChange: 增加 `/eng-practices init` 子命令，用于往 AGENTS.md 写�
 - 用户需要“写 CL/PR 描述、拆小变更、加速评审周转”。
 - 用户提到“紧急修复需要快速审查”并需要边界判断。
 
-## 子命令
+## 默认动作
 
-### `init`
-
-当用户显式要求 `/eng-practices init` 时：
-
-1. 运行 `scripts/init-eng-practices.sh`。
-2. 在当前项目根目录创建或更新 `AGENTS.md` 中的 `eng-practices` 说明块。
-3. 返回实际写入的目标文件路径。
-
-执行命令：
-
-```bash
-bash /path/to/shared-skills/eng-practices/scripts/init-eng-practices.sh [project-root]
-```
-
-### 默认动作
-
-当子命令不是 `init` 时，按本文件其余规则执行正常的代码评审辅助流程。
+按本文件其余规则执行正常的代码评审辅助流程。技能安装与管理统一使用 skills.sh / `npx skills add`。
 
 ## 总体执行规则
 

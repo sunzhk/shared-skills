@@ -1,79 +1,131 @@
-<!--
-UpdatedAt: 2026-04-14 17:05:00 +0800
-LatestChange: 修复 open-spec-cn 的命令同名折叠问题，并支持 `--all-targets` 同次初始化 Claude + Codex。
--->
+# shared-skills
 
-# shared-skills 总纲
+本仓库维护一组面向 Claude / Codex 的共享技能。当前唯一推荐的安装和管理路径是 `skills.sh` / `npx skills add`；不再通过脚本写入业务项目 `AGENTS.md`。
 
-<!-- shared-skills-config
-# configure-from-readme.sh 只接受 shared_skill_links。
-shared_skill_links=eng-practices,code-styleguide-skills,unit-test-guide-skills,open-spec-cn
--->
+## Installation
 
-本仓库用于维护一组面向 Claude / Codex 的共享技能。当前版本从仓库层面明确为 **skills.sh 唯一分发路径**，不再推荐或兼容 submodule、subtree、npm 私包、旧键名与历史路径回退。
+安装仓库内所有技能：
 
-## Breaking Change
+```bash
+npx skills add sunzhk/shared-skills --skill '*'
+```
 
-- 分发主路径只有 `skills.sh`。
-- `configure-from-readme.sh` 只接受 `shared_skill_links`，遇到旧键或未知键会直接失败。
-- `open-spec-cn` 的命令初始化支持 `OPSX_COMMANDS_DIR`、`.claude/commands(/opsx)`、`.codex/commands`、`.codex/skills` 四种目录形态。
-- 回滚方式只依赖 git 版本回退，不依赖脚本中的兼容分支。
+如需同时安装到所有支持的 agent，可使用 `--all`：
 
-## 唯一安装路径
+```bash
+npx skills add sunzhk/shared-skills --all
+```
 
-以 skills.sh 页面生成的命令为唯一真相源。当前仓库对应安装命令如下：
+也可以按入口技能安装：
 
 ```bash
 npx skills add sunzhk/shared-skills --skill eng-practices
 npx skills add sunzhk/shared-skills --skill code-styleguide-skills
 npx skills add sunzhk/shared-skills --skill unit-test-guide-skills
 npx skills add sunzhk/shared-skills --skill open-spec-cn
+npx skills add sunzhk/shared-skills --skill git-commit-message
 ```
 
-首发入口技能建议为：
+## Updates
 
-- `eng-practices`
-- `code-styleguide-skills`
-- `unit-test-guide-skills`
-- `open-spec-cn`
+更新已安装技能：
 
-## 文档导航
+```bash
+npx skills update
+```
 
-- 人类使用手册：`README.human.md`
-- AI 运行规则：`README.ai.md`
-- 代码风格技能说明：`code-styleguide-skills/README.md`
-- OpenSpec 中文规范：`open-spec-cn/SKILL.md`
-- 仓库内 AGENTS 生成脚本：`configure-from-readme.sh`
+只更新指定技能：
 
-## 当前技能目录
+```bash
+npx skills update git-commit-message
+```
 
-- `code-styleguide-skills/`
-  - 入口：`code-styleguide-skills`
-  - 路由：`styleguide-router`
-- `eng-practices/`
-  - 入口：`eng-practices`
-- `unit-test-guide-skills/`
-  - 入口：`unit-test-guide-skills`
-  - 路由：`unit-test-router`
-  - 子技能：`unit-test-android`、`unit-test-ios`、`unit-test-wechat-miniprogram`
-- `open-spec-cn/`
-  - 入口：`open-spec-cn`
-  - 脚本：`open-spec-cn/scripts/install-open-spec-cn.sh`
+限定更新范围：
 
-## configure-from-readme.sh 的定位
+```bash
+npx skills update -p
+npx skills update -g
+```
 
-`configure-from-readme.sh` 现在只承担一件事：读取仓库根 `README.md` 与业务项目 `README.md` 中的 `<!-- shared-skills-config -->` 块，校验入口技能，并按 `--target claude|codex|both` 写入业务项目 `AGENTS.md` 的 `## Shared Skills` 节。
+## Available Skills
 
-它不是发布或安装入口；正式分发与安装以 skills.sh 为准。
+| Skill | Purpose |
+| --- | --- |
+| `eng-practices` | 代码评审流程、评论方式、Required/Nit/Optional 分级、冲突处理。 |
+| `code-styleguide-skills` | 多语言代码风格建议，入口会委托 `styleguide-router` 分发到具体语言。 |
+| `unit-test-guide-skills` | 单元测试规范建议，入口会委托 `unit-test-router` 分发到 Android / iOS / 微信小程序子技能。 |
+| `open-spec-cn` | OpenSpec 中文规范、Requirement 关键词约束、`Purpose` 占位清理，以及 `/opsx-*-cn` 命令生成。 |
+| `git-commit-message` | 生成、检查或改写 `<type>: <subject>` 格式的 Git commit message。 |
 
-## 本次提交建议（Commit Message）
+## Usage Notes
+
+- 风格问题优先使用 `code-styleguide-skills`。
+- 代码评审流程、评论策略与冲突处理优先使用 `eng-practices`。
+- 单元测试规范与补测策略优先使用 `unit-test-guide-skills`。
+- OpenSpec 中文规范与命令生成优先使用 `open-spec-cn`。
+- 提交信息规范优先使用 `git-commit-message`。
+
+`open-spec-cn` 额外保留领域任务脚本：
+
+```bash
+bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh [project-root]
+bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh --all-targets [project-root]
+bash /path/to/shared-skills/open-spec-cn/scripts/install-open-spec-cn.sh --codex-prompts [project-root]
+```
+
+该脚本用于生成 OpenSpec 中文命令文件，不用于安装 skill 自身。
+
+## Repository Structure
 
 ```text
-refactor(init): make each shared skill self-initializing and remove shared init script
+code-styleguide-skills/
+eng-practices/
+unit-test-guide-skills/
+open-spec-cn/
+git-commit-message/
 ```
 
-可选中文版本：
+每个入口 skill 至少包含：
 
-```text
-重构(init): 四个共享技能改为自包含初始化，移除公共 init-shared-skill 脚本
+- `SKILL.md`：技能触发和执行说明。
+- `agents/openai.yaml`：如存在，用于技能展示元数据。
+
+## Deprecated Paths
+
+以下路径和机制不再支持：
+
+- submodule / subtree / 直接拷贝分发
+- npm 私包同步链路
+- `.cursor` 历史路径
+- 旧配置键，如 `cursor_skill_links`、`lean_spec_*`、`planning_with_files_ext*`
+- `configure-from-readme.sh`
+- `/xxx init`
+- 只负责写入业务项目 `AGENTS.md` 的 `scripts/init-*.sh`
+
+## Maintainer Checks
+
+发布前建议检查：
+
+1. 所有 `SKILL.md` frontmatter 可以通过 `quick_validate.py`。
+2. 除 `Deprecated Paths` 章节外，文档中没有残留旧安装路径、`configure-from-readme`、`shared_skill_links` 或 `/xxx init`。
+3. `open-spec-cn` 的命令生成脚本仍可按需运行。
+
+示例校验命令：
+
+```bash
+for skill in \
+  code-styleguide-skills \
+  eng-practices \
+  unit-test-guide-skills \
+  open-spec-cn \
+  git-commit-message
+do
+  python3 /path/to/skill-creator/scripts/quick_validate.py "$skill"
+done
+
+rg 'configure-from-readme|shared_skill_links|shared-skills-config|/[^` ]+ init|init-[a-z-]+\.sh' . --glob '!README.md'
 ```
+
+## Rollback
+
+如发布后发现问题，使用 git 回退到旧版本标签或提交；当前版本不保留旧安装链路的兼容开关。

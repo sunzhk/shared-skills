@@ -10,7 +10,7 @@ LatestChange: 补充 Kotlin 分发项，支持 Kotlin/Java 混编空值安全规
 
 # Code Style Router Skill
 
-本文件通常由顶层入口 `code-styleguide-skills/SKILL.md` 委托调用；若用户显式使用 `/code-styleguide-skills init`，应优先执行顶层 skill 的初始化逻辑，而不是直接进入本 router。
+本文件通常由顶层入口 `code-styleguide-skills/SKILL.md` 委托调用；安装与管理统一使用 skills.sh / `npx skills add`。
 
 ## 目标
 

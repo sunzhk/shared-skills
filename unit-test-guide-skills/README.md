@@ -1,6 +1,6 @@
 <!--
 UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 增加顶层入口 skill 与 `init` 子命令说明，统一为单 skill + 子命令方式。
+LatestChange: 移除 AGENTS.md 自初始化入口，安装与管理统一交给 skills.sh / npx skills add。
 -->
 
 # unit-test-guide-skills
@@ -11,7 +11,7 @@ LatestChange: 增加顶层入口 skill 与 `init` 子命令说明，统一为单
 
 | 角色 | 目录 | 说明 |
 | --- | --- | --- |
-| **顶层入口** | `SKILL.md` | 支持 `/unit-test-guide-skills init`，并将默认请求委托给 router。 |
+| **顶层入口** | `SKILL.md` | 接收单元测试规范请求，并将默认请求委托给 router。 |
 | **主控 / Router** | `unit-test-router/SKILL.md` | 默认分发器：识别项目类型并分发到对应子技能。 |
 | **子技能 · Android** | `unit-test-android/SKILL.md` | Android 项目的单元测试规范与落地建议。 |
 | **子技能 · iOS** | `unit-test-ios/SKILL.md` | iOS 项目的单元测试规范与落地建议。 |
@@ -19,7 +19,7 @@ LatestChange: 增加顶层入口 skill 与 `init` 子命令说明，统一为单
 
 ## 使用方式
 
-1. 初始化项目说明时，使用 `/unit-test-guide-skills init`。
+1. 使用 `npx skills add sunzhk/shared-skills --skill unit-test-guide-skills` 安装。
 2. 处理测试规范问题时，从 `unit-test-guide-skills` 进入。
 3. 顶层 skill 会把默认请求委托给 `unit-test-router`。
 4. 再由 router 按平台分发到具体子技能。
@@ -51,4 +51,5 @@ LatestChange: 增加顶层入口 skill 与 `init` 子命令说明，统一为单
 | 2026-03-26 16:48:38 | Android 子技能升级为官方基线版，并在 README 补充基线说明。 |
 | 2026-03-26 16:54:25 | iOS 与微信小程序子技能升级为官方基线版，并补充来源说明。 |
 | 2026-03-26 16:56:31 | router 增加官方文档映射与强制输出规则。 |
-| 2026-04-13 09:46:41 +0800 | 新增顶层入口 skill 与 `init` 子命令。 |
+| 2026-04-13 09:46:41 +0800 | 新增顶层入口 skill。 |
+| 2026-05-21 | 移除 AGENTS.md 自初始化入口，安装与管理统一交给 skills.sh / `npx skills add`。 |

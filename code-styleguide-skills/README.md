@@ -1,6 +1,6 @@
 <!--
 UpdatedAt: 2026-04-13 09:46:41 +0800
-LatestChange: 增加顶层入口 skill 与 `init` 子命令说明，统一为单 skill + 子命令方式。
+LatestChange: 移除 AGENTS.md 自初始化入口，安装与管理统一交给 skills.sh / npx skills add。
 -->
 
 ## 这是什么
@@ -24,7 +24,7 @@ npx skills add sunzhk/shared-skills --skill code-styleguide-skills
 
 ## 使用方式
 
-1. 初始化项目说明时，使用 `/code-styleguide-skills init`。
+1. 使用 `npx skills add sunzhk/shared-skills --skill code-styleguide-skills` 安装。
 2. 处理风格问题时，从 `code-styleguide-skills` 进入。
 3. 顶层 skill 会把默认请求委托给 `styleguide-router`。
 4. 再由 router 根据语言、文件类型或问题描述分发到具体子技能。

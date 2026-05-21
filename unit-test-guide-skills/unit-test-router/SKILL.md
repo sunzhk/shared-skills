@@ -13,7 +13,7 @@ LatestChange: 增加分发后的官方文档清单输出要求，确保每次路
 
 # unit-test-router（主控 / 路由）
 
-本文件通常由顶层入口 `unit-test-guide-skills/SKILL.md` 委托调用；若用户显式使用 `/unit-test-guide-skills init`，应优先执行顶层 skill 的初始化逻辑，而不是直接进入本 router。
+本文件通常由顶层入口 `unit-test-guide-skills/SKILL.md` 委托调用；安装与管理统一使用 skills.sh / `npx skills add`。
 
 ## 目标
 
