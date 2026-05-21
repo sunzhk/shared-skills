@@ -4,16 +4,34 @@
 
 ## Installation
 
-安装仓库内所有技能：
+安装仓库内所有技能到当前项目：
 
 ```bash
 npx skills add sunzhk/shared-skills --skill '*'
 ```
 
-如需同时安装到所有支持的 agent，可使用 `--all`：
+如需在当前项目内同时安装到所有支持的 agent，可使用 `--all`：
 
 ```bash
 npx skills add sunzhk/shared-skills --all
+```
+
+注意：`--all` 只是 `--skill '*' --agent '*' -y` 的简写，不代表全局安装。若要安装到用户级全局位置，让 Codex / Claude 等 agent 在其他项目中也能识别这些技能，需要额外加 `-g` 或 `--global`：
+
+```bash
+npx skills add sunzhk/shared-skills --all -g
+```
+
+查看当前项目已安装技能：
+
+```bash
+npx skills ls
+```
+
+查看全局已安装技能：
+
+```bash
+npx skills ls -g
 ```
 
 也可以按入口技能安装：
