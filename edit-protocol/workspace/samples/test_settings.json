@@ -1,0 +1,30 @@
+{
+  "features": {
+    "profile": {
+      "enabled": true,
+      "title": "Profile"
+    },
+    "audit": {
+      "enabled": true,
+      "title": "Audit"
+    },
+    "marketing": {
+      "enabled": false,
+      "title": "Marketing"
+    }
+  },
+  "ui": {
+    "sections": [
+      {
+        "id": "summary",
+        "enabled": true,
+        "label": "Summary"
+      },
+      {
+        "id": "details",
+        "enabled": true,
+        "label": "Details"
+      }
+    ]
+  }
+}

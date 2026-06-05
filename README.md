@@ -42,6 +42,7 @@ npx skills add sunzhk/shared-skills --skill code-styleguide-skills
 npx skills add sunzhk/shared-skills --skill unit-test-guide-skills
 npx skills add sunzhk/shared-skills --skill open-spec-cn
 npx skills add sunzhk/shared-skills --skill git-commit-message
+npx skills add sunzhk/shared-skills --skill edit-protocol
 ```
 
 ## Updates
@@ -73,6 +74,7 @@ npx skills update -g
 | `code-styleguide-skills` | 多语言代码风格建议，入口会委托 `styleguide-router` 分发到具体语言。 |
 | `unit-test-guide-skills` | 单元测试规范建议，入口会委托 `unit-test-router` 分发到 Android / iOS / 微信小程序子技能。 |
 | `open-spec-cn` | OpenSpec 中文规范、Requirement 关键词约束、`Purpose` 占位清理，以及 `/opsx-*-cn` 命令生成。 |
+| `edit-protocol` | 显著降低 AI 编码助手在编辑任意文本文件时的失败率。提供统一的编辑协议：重新读取文件、识别结构层级、选择稳定锚点、执行最小可靠修改、校验结果，并在失败后立即切换策略。 |
 | `git-commit-message` | 生成、检查或改写 `<type><subject>` 格式的 Git commit message，默认优先使用中文 subject。 |
 
 ## Usage Notes
@@ -82,6 +84,7 @@ npx skills update -g
 - 单元测试规范与补测策略优先使用 `unit-test-guide-skills`。
 - OpenSpec 中文规范与命令生成优先使用 `open-spec-cn`。
 - 提交信息规范优先使用 `git-commit-message`。
+- 编辑文件前定位、锚点选择、失败后策略切换优先使用 `edit-protocol`。
 
 `open-spec-cn` 额外保留领域任务脚本：
 
@@ -100,6 +103,7 @@ code-styleguide-skills/
 eng-practices/
 unit-test-guide-skills/
 open-spec-cn/
+edit-protocol/
 git-commit-message/
 ```
 
@@ -136,7 +140,8 @@ for skill in \
   eng-practices \
   unit-test-guide-skills \
   open-spec-cn \
-  git-commit-message
+  git-commit-message \
+  edit-protocol
 do
   python3 /path/to/skill-creator/scripts/quick_validate.py "$skill"
 done

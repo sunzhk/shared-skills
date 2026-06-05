@@ -1,0 +1,40 @@
+{
+  "skill_name": "edit-protocol",
+  "evals": [
+    {
+      "id": 0,
+      "name": "edit-kotlin-repeated-branch",
+      "prompt": "请修改 `workspace/samples/test_service.kt` 中的 `buildDisplayName` 方法：当 `user.name` 为空时返回 `\"(guest)\"`，否则如果 `user.role` 不为空，返回 `\"姓名 (角色)\"`，为空则仍返回去掉空白后的姓名。注意：`if (user.name.isBlank()) return \"Anonymous\"` 这种分支在别的方法里也出现了，不要误改 `buildAuditName`。",
+      "expected_output": "只修改 `buildDisplayName` 方法，`buildAuditName` 中的 `Anonymous` 分支保持不变，且优先按方法结构而不是裸单行文本定位。",
+      "files": ["workspace/samples/test_service.kt"]
+    },
+    {
+      "id": 1,
+      "name": "edit-json-targeted-object",
+      "prompt": "请修改 `workspace/samples/test_settings.json`：只把 `features.audit.enabled` 改成 `false`，并把它的 `title` 改成 `\"Audit Trail\"`。注意这个文件里有很多 `\"enabled\": true`，不要靠值本身定位。",
+      "expected_output": "只修改 `features.audit` 这个对象，其他 `enabled` 字段和 `title` 字段保持不变，优先按对象结构和键路径定位。",
+      "files": ["workspace/samples/test_settings.json"]
+    },
+    {
+      "id": 2,
+      "name": "edit-markdown-duplicate-heading",
+      "prompt": "请修改 `workspace/samples/test_notes.md` 中第二个 `## Backend` 小节：把 `- Sync dashboards` 改成 `- Sync dashboards with analytics`，并在它后面新增一行 `- Confirm on-call owner`。注意这个文件里有两个同名的 `## Backend` 标题。",
+      "expected_output": "只修改第二个 `## Backend` 小节，前面的第一个 `## Backend` 小节保持不变，定位应基于章节结构而不是同名标题的第一次出现。",
+      "files": ["workspace/samples/test_notes.md"]
+    },
+    {
+      "id": 3,
+      "name": "diagnose-stale-context-after-write",
+      "prompt": "我刚刚已经修改过一次 `workspace/samples/test_settings.json`，现在又想继续改 `features.profile.title`，但补丁一直失败。请先解释为什么连续编辑 JSON 时容易因为旧上下文失效，再说明下一次编辑前应该怎么重新读取并选择锚点。",
+      "expected_output": "应明确指出前一次写入后旧上下文可能失效，建议重新读取最新 JSON，并用 `features.profile` 这样的结构锚点而不是复用上一次的旧片段。",
+      "files": ["workspace/samples/test_settings.json"]
+    },
+    {
+      "id": 4,
+      "name": "edit-tab-indented-makefile",
+      "prompt": "Add a new `fmt` target to the Makefile at `workspace/samples/Makefile`. It should go between the `lint` and `clean` targets, run `go fmt ./...`, and print messages like the other targets. Remember this is a Makefile so recipe lines MUST use tabs, not spaces.",
+      "expected_output": "A new `fmt` target should be added correctly between lint and clean targets, with tab-indented recipe lines. The file must remain valid Makefile syntax.",
+      "files": ["workspace/samples/Makefile"]
+    }
+  ]
+}
