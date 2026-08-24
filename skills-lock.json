@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "code-styleguide-skills": {
+      "source": "sunzhk/shared-skills",
+      "sourceType": "github",
+      "skillPath": "code-styleguide-skills/SKILL.md",
+      "computedHash": "8e55117cbfa3fb104dffe66e82a3f0c238358d9b252dacf79593aa625cf1af7b"
+    },
+    "eng-practices": {
+      "source": "sunzhk/shared-skills",
+      "sourceType": "github",
+      "skillPath": "eng-practices/SKILL.md",
+      "computedHash": "e69dfa71801dcd65543c11f1ba331014fa21565990dc48128c1bc66b05e814f9"
+    },
+    "git-commit-message": {
+      "source": "sunzhk/shared-skills",
+      "sourceType": "github",
+      "skillPath": "git-commit-message/SKILL.md",
+      "computedHash": "ec9e403468eada9d49e9ae19a13b7a7b24d3599ab6b4418a96d03c7721f6d308"
+    },
+    "open-spec-cn": {
+      "source": "sunzhk/shared-skills",
+      "sourceType": "github",
+      "skillPath": "open-spec-cn/SKILL.md",
+      "computedHash": "3770b3df87eff4afde5d1ed04a0753963df5d1ab79e6a47a88de45a3132b2c4c"
+    },
+    "unit-test-guide-skills": {
+      "source": "sunzhk/shared-skills",
+      "sourceType": "github",
+      "skillPath": "unit-test-guide-skills/SKILL.md",
+      "computedHash": "1f661358e3277a8cad903860804f3b04d41a9ed7214896c7669994d00029b3d2"
+    }
+  }
+}
